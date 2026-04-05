@@ -1,20 +1,19 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Blind_Match_PAS.Models; // Ensure the Models namespace is referenced here
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Blind_Match_PAS.Models; // This allows the context to see your models
 
 namespace Blind_Match_PAS.Data
 {
-    // Inherit from IdentityDbContext to include built-in ASP.NET Identity tables (Users, Roles, etc.)
-    // We pass <ApplicationUser> to tell Identity to use our custom User model.
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // This DbSet creates the 'ProjectProposals' table in the database
-        // It allows the system to store and retrieve student project submissions.
+        // Register your tables here:
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<ProjectProposal> ProjectProposals { get; set; }
+        public DbSet<ResearchArea> ResearchAreas { get; set; }
     }
 }

@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Match Successful!";
+    var proposal = (Blind_Match_PAS.Models.ProjectProposal)ViewData["Proposal"];
+    var student = (Blind_Match_PAS.Models.ApplicationUser)ViewData["Student"];
+    var supervisor = (Blind_Match_PAS.Models.ApplicationUser)ViewData["Supervisor"];
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">🎉 Match Successful!</h4>
+                <p>You have successfully expressed interest in this project proposal. Identities have now been revealed
+                    for both parties to coordinate further.</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card shadow-lg">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Project Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">@proposal.Title</h5>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Research Area</h6>
+                                <p>@proposal.ResearchArea?.Name</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Status</h6>
+                                <span class="badge bg-success">@proposal.Status</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Abstract</h6>
+                            <p class="text-muted">@proposal.Abstract</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Technical Stack</h6>
+                            <p class="text-muted">@proposal.TechnicalStack</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identity Reveal Section -->
+                @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched && proposal.IsIdentityRevealed)
+                {
+                    <div class="row mt-4">
+                        <!-- Student Information -->
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">👤 Student Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <strong>Name:</strong> @(student?.FullName ?? "Not Provided")
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Email:</strong>
+                                        <a href="mailto:@student?.Email">@student?.Email</a>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(student?.Expertise))
+                                    {
+                                        <p class="mb-0">
+                                            <strong>Expertise:</strong> @student?.Expertise
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Supervisor Information -->
+                        <div class="col-md-6">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">👨‍🏫 Supervisor Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <strong>Name:</strong> @(supervisor?.FullName ?? "Not Provided")
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Email:</strong>
+                                        <a href="mailto:@supervisor?.Email">@supervisor?.Email</a>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(supervisor?.Expertise))
+                                    {
+                                        <p class="mb-0">
+                                            <strong>Expertise:</strong> @supervisor?.Expertise
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4" role="alert">
+                        <strong>Next Steps:</strong> Please contact the student/supervisor using the email provided above to
+                        discuss the project proposal and coordinate on project requirements and timeline.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning mt-4" role="alert">
+                        <strong>⚠️ Identities cannot be revealed</strong> - This proposal's status is not 'Matched' or
+                        identities have not been revealed yet.
+                    </div>
+                }
+
+                <div class="mt-4">
+                    <a href="@Url.Action("Index", "Supervisor")" class="btn btn-secondary">Back to Proposals</a>
+                </div>
+            </div>
+        </div>
+    </div>

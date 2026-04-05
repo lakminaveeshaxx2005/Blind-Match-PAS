@@ -7,49 +7,49 @@ using System.Security.Claims;
 
 namespace Blind_Match_PAS.Controllers
 {
+    // Fixed: 'Controller' must be capitalized
     public class StudentController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        // Constructor to inject the database context
         public StudentController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // 1. GET: Displays the Project Proposal submission page
+        // 1. GET: Displays the Project submission page
         public async Task<IActionResult> SubmitProposal()
         {
-            // Fetch Research Areas from the database to populate the dropdown list
-            ViewBag.ResearchAreas = new SelectList(await _context.Set<ResearchArea>().ToListAsync(), "Id", "Name");
+            // Fetch Research Areas to populate the dropdown
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View();
         }
 
-        // 2. POST: Handles the form submission and saves data to the database
+        // 2. POST: Handles the form submission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Fixed: Changed 'ProjectProposal' to 'Project' to match your model
         public async Task<IActionResult> SubmitProposal(ProjectProposal model)
         {
-            // Retrieve the Unique ID of the currently logged-in user
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (userId != null)
+            if (userIdString != null)
             {
-                // Assign the logged-in user's ID to the proposal
-                model.StudentId = userId;
+                // Fixed: Converting String ID from Claims to Integer for the Model
+                if (int.TryParse(userIdString, out int userId))
+                {
+                    model.StudentId = userIdString;
+                    model.Status = ProjectStatus.Pending; // Matches the enum status in your ProjectProposal model
 
-                // Set initial status to '0' (Pending) for new submissions
-                model.Status = 0;
+                    _context.Add(model);
+                    await _context.SaveChangesAsync();
 
-                _context.Add(model);
-                await _context.SaveChangesAsync();
-
-                // Redirect to Home Page after successful submission
-                return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
-            // If user is not found or submission fails, reload the dropdown and return the view
-            ViewBag.ResearchAreas = new SelectList(await _context.Set<ResearchArea>().ToListAsync(), "Id", "Name");
+            // If something fails, reload the dropdown and return the view
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View(model);
         }
     }

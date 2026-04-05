@@ -1,0 +1,29 @@
+@model Blind_Match_PAS.Models.ResearchArea
+
+@{
+    ViewData["Title"] = "Create Research Area";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            <form asp-action="CreateResearchArea" asp-controller="Admin" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Area Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g., Artificial Intelligence" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Create Area</button>
+                    <a href="@Url.Action("ResearchAreas", "Admin")" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

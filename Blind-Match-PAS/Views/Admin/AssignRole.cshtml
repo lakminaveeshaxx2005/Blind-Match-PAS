@@ -1,0 +1,45 @@
+@model Microsoft.AspNetCore.Identity.IdentityUser
+
+@{
+    ViewData["Title"] = "Assign User Role";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1>@ViewData["Title"]</h1>
+            <p class="text-muted">User: @Model.Email</p>
+            <hr />
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="UpdateRole" asp-controller="Admin" method="post">
+                <input type="hidden" name="userId" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Select Role</label>
+                    <div class="d-grid gap-2">
+                        @foreach (var role in ViewBag.Roles)
+                        {
+                            var isSelected = ViewBag.UserRoles.Contains(role);
+                            <button type="submit" name="role" value="@role"
+                                    class="btn @(isSelected ? "btn-success" : "btn-outline-secondary")">
+                                @(isSelected ? "✓ " : "")@role
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="@Url.Action("Users", "Admin")" class="btn btn-secondary">Back to Users</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

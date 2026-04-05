@@ -1,0 +1,59 @@
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container mt-5">
+    <h1>@ViewData["Title"]</h1>
+    <p class="text-muted">Assign roles to users (Student, Supervisor, Admin)</p>
+    <hr />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter by Role -->
+    <div class="mb-3">
+        <div class="btn-group" role="group">
+            <a href="@Url.Action("Users", "Admin")"
+               class="btn btn-outline-primary @(ViewBag.SelectedRole == "" ? "active" : "")">All Users</a>
+            @foreach (var role in ViewBag.Roles)
+            {
+                <a href="@Url.Action("Users", "Admin", new { role = role })"
+                   class="btn btn-outline-primary @(ViewBag.SelectedRole == role ? "active" : "")">@role</a>
+            }
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>
+                            <span class="badge bg-info">Role Info</span>
+                        </td>
+                        <td>
+                            <a href="@Url.Action("AssignRole", "Admin", new { userId = user.Id })"
+                               class="btn btn-sm btn-warning">Assign Role</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

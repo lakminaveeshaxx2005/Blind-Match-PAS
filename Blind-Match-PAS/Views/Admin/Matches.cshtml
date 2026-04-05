@@ -1,0 +1,86 @@
+@model IEnumerable<Blind_Match_PAS.Models.ProjectProposal>
+
+@{
+    ViewData["Title"] = "Manage Matches";
+}
+
+<div class="container mt-5">
+    <h1>@ViewData["Title"]</h1>
+    <p class="text-muted">View all matched projects and reassign supervisors if needed</p>
+    <hr />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No matched projects yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Project Title</th>
+                        <th>Research Area</th>
+                        <th>Student ID</th>
+                        <th>Supervisor ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var match in Model)
+                    {
+                        <tr>
+                            <td>@match.Title</td>
+                            <td>@match.ResearchArea?.Name</td>
+                            <td><code>@match.StudentId</code></td>
+                            <td><code>@match.SupervisorId</code></td>
+                            <td><span class="badge bg-success">Matched</span></td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                        data-bs-target="#reassignModal@(match.Id)">
+                                    Reassign Supervisor
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Reassign Modal -->
+                        <div class="modal fade" id="reassignModal@(match.Id)" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Reassign Supervisor</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form asp-action="Reassign" asp-controller="Admin" method="post">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="proposalId" value="@match.Id" />
+                                            <div class="mb-3">
+                                                <label class="form-label">New Supervisor ID</label>
+                                                <input type="text" name="newSupervisorId" class="form-control"
+                                                       placeholder="Enter supervisor ID" required />
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Reassign</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,106 @@
+@model IEnumerable<Blind_Match_PAS.Models.ProjectProposal>
+
+@{
+    ViewData["Title"] = "My Project Proposals";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <a href="@Url.Action("Create", "ProjectProposals")" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Submit New Proposal
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <p>You have not submitted any proposals yet.</p>
+            <a href="@Url.Action("Create", "ProjectProposals")" class="btn btn-sm btn-primary">Submit Your First
+                Proposal</a>
+            </div>
+        }
+    else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Research Area</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var proposal in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@proposal.Title</strong>
+                                    <br />
+                                    <small class="text-muted">@proposal.Abstract.Substring(0, Math.Min(50,
+                                                                    proposal.Abstract.Length))...</small>
+                                    </td>
+                                    <td>@proposal.ResearchArea?.Name</td>
+                                    <td>
+                                        @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Pending)
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                        else if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.UnderReview)
+                                        {
+                                            <span class="badge bg-info">Under Review</span>
+                                        }
+                                        else if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched)
+                                        {
+                                            <span class="badge bg-success">Matched</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@proposal.Status</span>
+                                        }
+                                    </td>
+                                    <td>@proposal.Id</td>
+                                    <td>
+                                        <a href="@Url.Action("Edit", "ProjectProposals", new { id = proposal.Id })"
+                                               class="btn btn-sm btn-warning" @if (proposal.Status !=
+                                            Blind_Match_PAS.Models.ProjectStatus.Pending) {
+                                                <text>disabled</text>
+                                            }
+                                            >
+                                                Edit
+                                            </a>
+                                            @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Pending)
+                                            {
+                                                <form asp-action="Delete" asp-controller="ProjectProposals" asp-route-id="@proposal.Id"
+                                                      method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Are you sure?')">Delete</button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
