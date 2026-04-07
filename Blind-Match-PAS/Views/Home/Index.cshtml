@@ -1,8 +1,121 @@
-﻿@{
+﻿@using Blind_Match_PAS.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Blind Matching System</h1>
+        <p class="lead">A fair and unbiased student-supervisor matching platform</p>
+    </div>
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <div class="row">
+            <!-- Student Dashboard -->
+            @if (User.IsInRole("Student"))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">
+                                <i class="bi bi-pencil-square"></i> Student Portal
+                            </h5>
+                            <p class="card-text">Submit and manage your project proposals.</p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="@Url.Action("Create", "ProjectProposals")" class="btn btn-primary btn-sm w-100 mb-2">
+                                Submit New Proposal
+                            </a>
+                            <a href="@Url.Action("Index", "ProjectProposals")" class="btn btn-outline-primary btn-sm w-100">
+                                View My Proposals
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Supervisor Dashboard -->
+            @if (User.IsInRole("Supervisor"))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-success">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <i class="bi bi-search"></i> Supervisor Portal
+                            </h5>
+                            <p class="card-text">Browse project proposals and express interest in students.</p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="@Url.Action("Index", "Project")" class="btn btn-success btn-sm w-100 mb-2">
+                                Browse Projects
+                            </a>
+                            <a href="@Url.Action("Index", "Supervisor")" class="btn btn-outline-success btn-sm w-100">
+                                View Pending Proposals
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Admin Dashboard -->
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-warning">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">
+                                <i class="bi bi-gear"></i> Admin Portal
+                            </h5>
+                            <p class="card-text">Manage system, users, and view all matches.</p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-warning btn-sm w-100 mb-2">
+                                Admin Dashboard
+                            </a>
+                            <a href="@Url.Action("Matches", "Admin")" class="btn btn-outline-warning btn-sm w-100">
+                                View All Matches
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <strong>Welcome back!</strong> Use the navigation above to access your portal based on your role.
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-4">Get Started</h5>
+                        <p class="card-text">Sign in with your account to access the Blind Matching System.</p>
+                        <a href="/Identity/Account/Login" class="btn btn-primary btn-lg mb-2">Sign In</a>
+                        <p class="mt-3 text-muted">Don't have an account?</p>
+                        <a href="/Identity/Account/Register" class="btn btn-secondary">Create Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 p-4 bg-light rounded">
+            <h5>About the Blind Matching System</h5>
+            <ul>
+                <li><strong>Students:</strong> Submit project proposals without revealing your identity during the proposal
+                    phase.</li>
+                    <li><strong>Supervisors:</strong> Review proposals anonymously before expressing interest to ensure unbiased
+                        evaluation.</li>
+                        <li><strong>Admins:</strong> Manage the matching process and oversee all student-supervisor allocations.
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>

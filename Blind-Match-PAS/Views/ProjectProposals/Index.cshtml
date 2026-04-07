@@ -1,4 +1,4 @@
-@model IEnumerable<Blind_Match_PAS.Models.ProjectProposal>
+@model IEnumerable<Blind_Match_PAS.Models.StudentProjectProposalViewModel>
 
 @{
     ViewData["Title"] = "My Project Proposals";
@@ -45,6 +45,7 @@
                             <th>Title</th>
                             <th>Research Area</th>
                             <th>Status</th>
+                            <th>Supervisor</th>
                             <th>Created Date</th>
                             <th>Actions</th>
                         </tr>
@@ -57,9 +58,9 @@
                                     <strong>@proposal.Title</strong>
                                     <br />
                                     <small class="text-muted">@proposal.Abstract.Substring(0, Math.Min(50,
-                                                                    proposal.Abstract.Length))...</small>
+                                                                                                                                                    proposal.Abstract.Length))...</small>
                                     </td>
-                                    <td>@proposal.ResearchArea?.Name</td>
+                                    <td>@proposal.ResearchAreaName</td>
                                     <td>
                                         @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Pending)
                                         {
@@ -78,7 +79,24 @@
                                             <span class="badge bg-secondary">@proposal.Status</span>
                                         }
                                     </td>
-                                    <td>@proposal.Id</td>
+                                    <td>
+                                        @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched &&
+                                                                                                        !string.IsNullOrEmpty(proposal.SupervisorName))
+                                        {
+                                            <strong>@proposal.SupervisorName</strong>
+                                            <br />
+                                            <small class="text-muted">@proposal.SupervisorEmail</small>
+                                        }
+                                        else if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched)
+                                        {
+                                            <span class="text-muted">Matched (supervisor assigned)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>@proposal.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td>
                                         <a href="@Url.Action("Edit", "ProjectProposals", new { id = proposal.Id })"
                                                class="btn btn-sm btn-warning" @if (proposal.Status !=

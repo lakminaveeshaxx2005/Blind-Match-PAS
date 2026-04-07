@@ -11,23 +11,51 @@ namespace Blind_Match_PAS.Controllers
     [Authorize(Roles = "Student")]
     public class ProjectProposalsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CustomDbContext _customContext;
+        private readonly ApplicationDbContext _identityContext;
 
-        public ProjectProposalsController(ApplicationDbContext context)
+        public ProjectProposalsController(CustomDbContext customContext, ApplicationDbContext identityContext)
         {
-            _context = context;
+            _customContext = customContext;
+            _identityContext = identityContext;
         }
 
         // GET: ProjectProposals/Index - Student's proposal list
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var studentProposals = await _context.ProjectProposals
+            var studentProposals = await _customContext.ProjectProposals
                 .Where(p => p.StudentId == userId)
                 .Include(p => p.ResearchArea)
                 .ToListAsync();
 
-            return View(studentProposals);
+            var supervisorIds = studentProposals
+                .Where(p => !string.IsNullOrEmpty(p.SupervisorId))
+                .Select(p => p.SupervisorId!)
+                .Distinct()
+                .ToList();
+
+            var supervisors = await _identityContext.ApplicationUsers
+                .Where(u => supervisorIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u);
+
+            var viewModels = studentProposals.Select(p => new StudentProjectProposalViewModel
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Abstract = p.Abstract,
+                TechnicalStack = p.TechnicalStack,
+                ResearchAreaName = p.ResearchArea?.Name,
+                Status = p.Status,
+                SupervisorId = p.SupervisorId,
+                SupervisorName = p.SupervisorId != null ? supervisors.GetValueOrDefault(p.SupervisorId)?.FullName : null,
+                SupervisorEmail = p.SupervisorId != null ? supervisors.GetValueOrDefault(p.SupervisorId)?.Email : null,
+                CreatedAt = p.CreatedAt,
+                MatchedAt = p.MatchedAt,
+                LastModifiedAt = p.LastModifiedAt
+            }).ToList();
+
+            return View(viewModels);
         }
 
         // GET: ProjectProposals/Create
@@ -35,7 +63,7 @@ namespace Blind_Match_PAS.Controllers
         {
             // Fetch Research Areas to populate the dropdown
             ViewBag.ResearchAreas = new SelectList(
-                await _context.ResearchAreas.ToListAsync(),
+                await _customContext.ResearchAreas.ToListAsync(),
                 "Id",
                 "Name"
             );
@@ -54,7 +82,7 @@ namespace Blind_Match_PAS.Controllers
             {
                 ModelState.AddModelError("", "User must be logged in to submit a proposal.");
                 ViewBag.ResearchAreas = new SelectList(
-                    await _context.ResearchAreas.ToListAsync(),
+                    await _customContext.ResearchAreas.ToListAsync(),
                     "Id",
                     "Name"
                 );
@@ -69,8 +97,8 @@ namespace Blind_Match_PAS.Controllers
             {
                 try
                 {
-                    _context.Add(model);
-                    await _context.SaveChangesAsync();
+                    _customContext.Add(model);
+                    await _customContext.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Project proposal submitted successfully!";
                     return RedirectToAction("Index");
                 }
@@ -82,7 +110,7 @@ namespace Blind_Match_PAS.Controllers
 
             // Reload the dropdown if validation fails
             ViewBag.ResearchAreas = new SelectList(
-                await _context.ResearchAreas.ToListAsync(),
+                await _customContext.ResearchAreas.ToListAsync(),
                 "Id",
                 "Name",
                 model.ResearchAreaId
@@ -94,7 +122,7 @@ namespace Blind_Match_PAS.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var proposal = await _context.ProjectProposals.FindAsync(id);
+            var proposal = await _customContext.ProjectProposals.FindAsync(id);
 
             if (proposal == null)
             {
@@ -107,14 +135,14 @@ namespace Blind_Match_PAS.Controllers
                 return Forbid("You can only edit your own proposals.");
             }
 
-            // Only allow editing if status is Pending
-            if (proposal.Status != ProjectStatus.Pending)
+            // Only allow editing if proposal.CanEdit (status is Pending)
+            if (!proposal.CanEdit)
             {
                 return BadRequest("You can only edit proposals with 'Pending' status.");
             }
 
             ViewBag.ResearchAreas = new SelectList(
-                await _context.ResearchAreas.ToListAsync(),
+                await _customContext.ResearchAreas.ToListAsync(),
                 "Id",
                 "Name",
                 proposal.ResearchAreaId
@@ -129,7 +157,7 @@ namespace Blind_Match_PAS.Controllers
         public async Task<IActionResult> Edit(int id, ProjectProposal model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var proposal = await _context.ProjectProposals.FindAsync(id);
+            var proposal = await _customContext.ProjectProposals.FindAsync(id);
 
             if (proposal == null)
             {
@@ -142,6 +170,12 @@ namespace Blind_Match_PAS.Controllers
             }
 
             if (proposal.Status != ProjectStatus.Pending)
+            {
+                return BadRequest("You can only edit proposals with 'Pending' status.");
+            }
+
+            // Use CanEdit property for validation
+            if (!proposal.CanEdit)
             {
                 return BadRequest("You can only edit proposals with 'Pending' status.");
             }
@@ -157,8 +191,8 @@ namespace Blind_Match_PAS.Controllers
             {
                 try
                 {
-                    _context.Update(proposal);
-                    await _context.SaveChangesAsync();
+                    _customContext.Update(proposal);
+                    await _customContext.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Project proposal updated successfully!";
                     return RedirectToAction("Index");
                 }
@@ -169,7 +203,7 @@ namespace Blind_Match_PAS.Controllers
             }
 
             ViewBag.ResearchAreas = new SelectList(
-                await _context.ResearchAreas.ToListAsync(),
+                await _customContext.ResearchAreas.ToListAsync(),
                 "Id",
                 "Name",
                 proposal.ResearchAreaId
@@ -184,7 +218,7 @@ namespace Blind_Match_PAS.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var proposal = await _context.ProjectProposals.FindAsync(id);
+            var proposal = await _customContext.ProjectProposals.FindAsync(id);
 
             if (proposal == null)
             {
@@ -196,16 +230,16 @@ namespace Blind_Match_PAS.Controllers
                 return Forbid("You can only delete your own proposals.");
             }
 
-            // Only allow deletion if status is Pending
-            if (proposal.Status != ProjectStatus.Pending)
+            // Only allow deletion if proposal.CanEdit (status is Pending)
+            if (!proposal.CanEdit)
             {
                 return BadRequest("You can only delete proposals with 'Pending' status.");
             }
 
             try
             {
-                _context.ProjectProposals.Remove(proposal);
-                await _context.SaveChangesAsync();
+                _customContext.ProjectProposals.Remove(proposal);
+                await _customContext.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Project proposal deleted successfully!";
             }
             catch (Exception ex)

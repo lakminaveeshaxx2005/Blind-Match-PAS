@@ -2,85 +2,204 @@
 
 @{
     ViewData["Title"] = "Manage Matches";
+    var studentNameMap = (Dictionary<string, string>)ViewBag.StudentNameMap ?? new Dictionary<string, string>();
+    var supervisorNameMap = (Dictionary<string, string>)ViewBag.SupervisorNameMap ?? new Dictionary<string, string>();
 }
 
-<div class="container mt-5">
-    <h1>@ViewData["Title"]</h1>
-    <p class="text-muted">View all matched projects and reassign supervisors if needed</p>
-    <hr />
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    <p class="text-muted">View all matched projects with student and supervisor information. <strong>Total Matches:
+        @ViewBag.MatchedCount</strong></p>
+        <hr />
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">No matched projects yet.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Project Title</th>
-                        <th>Research Area</th>
-                        <th>Student ID</th>
-                        <th>Supervisor ID</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var match in Model)
-                    {
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                <strong>No matched projects yet.</strong> Supervisors and students haven't been matched with proposals.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive shadow-sm">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
                         <tr>
-                            <td>@match.Title</td>
-                            <td>@match.ResearchArea?.Name</td>
-                            <td><code>@match.StudentId</code></td>
-                            <td><code>@match.SupervisorId</code></td>
-                            <td><span class="badge bg-success">Matched</span></td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                        data-bs-target="#reassignModal@(match.Id)">
-                                    Reassign Supervisor
-                                </button>
-                            </td>
+                            <th scope="col">Project Title</th>
+                            <th scope="col">Research Area</th>
+                            <th scope="col">Student Name</th>
+                            <th scope="col">Supervisor Name</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Matched Date</th>
+                            <th scope="col">Actions</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in Model)
+                        {
+                            var studentName = studentNameMap.ContainsKey(match.StudentId)
+                                ? studentNameMap[match.StudentId]
+                                : "Unknown Student";
+                            var supervisorName = !string.IsNullOrEmpty(match.SupervisorId) &&
+                    supervisorNameMap.ContainsKey(match.SupervisorId)
+                                ? supervisorNameMap[match.SupervisorId]
+                                : "Unassigned";
 
-                        <!-- Reassign Modal -->
-                        <div class="modal fade" id="reassignModal@(match.Id)" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Reassign Supervisor</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form asp-action="Reassign" asp-controller="Admin" method="post">
+                            <tr>
+                                <td>
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#detailsModal@(match.Id)"
+                                           class="text-decoration-none">
+                                        <strong>@match.Title</strong>
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@match.ResearchArea?.Name</span>
+                                </td>
+                                <td>
+                                    <span>@studentName</span>
+                                    <br />
+                                    <small class="text-muted">@match.StudentId</small>
+                                </td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(match.SupervisorId))
+                                    {
+                                        <span class="text-warning">Unassigned</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@supervisorName</span>
+                                        <br />
+                                        <small class="text-muted">@match.SupervisorId</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Matched</span>
+                                </td>
+                                <td>
+                                    @if (match.MatchedAt.HasValue)
+                                    {
+                                        <span>@match.MatchedAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                            data-bs-target="#reassignModal@(match.Id)" title="Reassign to a different supervisor">
+                                        Reassign
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Details Modal -->
+                            <div class="modal fade" id="detailsModal@(match.Id)" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">@match.Title</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
                                         <div class="modal-body">
-                                            <input type="hidden" name="proposalId" value="@match.Id" />
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="fw-bold">Student Information</h6>
+                                                    <p>
+                                                        <strong>Name:</strong> @studentName<br />
+                                                        <strong>ID:</strong> @match.StudentId
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="fw-bold">Supervisor Information</h6>
+                                                    <p>
+                                                        <strong>Name:</strong> @supervisorName<br />
+                                                        <strong>ID:</strong> @(string.IsNullOrEmpty(match.SupervisorId) ?
+                                                                       "Unassigned" : match.SupervisorId)
+                                                    </p>
+                                                </div>
+                                            </div>
                                             <div class="mb-3">
-                                                <label class="form-label">New Supervisor ID</label>
-                                                <input type="text" name="newSupervisorId" class="form-control"
-                                                       placeholder="Enter supervisor ID" required />
+                                                <h6 class="fw-bold">Research Area</h6>
+                                                <p>@match.ResearchArea?.Name</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold">Abstract</h6>
+                                                <p>@match.Abstract</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold">Technical Stack</h6>
+                                                <p>@match.TechnicalStack</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold">Timeline</h6>
+                                                <p>
+                                                    <strong>Created:</strong> @match.CreatedAt.ToString("yyyy-MM-dd HH:mm")<br />
+                                                    <strong>Matched:</strong> @(match.MatchedAt?.ToString("yyyy-MM-dd HH:mm") ??
+                                                                                            "N/A")
+                                                </p>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary">Reassign</button>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                         </div>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-</div>
+
+                            <!-- Reassign Modal -->
+                            <div class="modal fade" id="reassignModal@(match.Id)" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reassign Supervisor - @match.Title</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form asp-action="Reassign" asp-controller="Admin" method="post">
+                                            <div class="modal-body">
+                                                <p class="mb-3">
+                                                    <strong>Current Supervisor:</strong> @supervisorName
+                                                </p>
+                                                <input type="hidden" name="proposalId" value="@match.Id" />
+                                                <div class="mb-3">
+                                                    <label class="form-label">New Supervisor ID</label>
+                                                    <input type="text" name="newSupervisorId" class="form-control"
+                                                           placeholder="Enter supervisor ID" required />
+                                                    <small class="form-text text-muted">
+                                                        Enter the user ID of the supervisor to reassign this project to.
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Reassign</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>

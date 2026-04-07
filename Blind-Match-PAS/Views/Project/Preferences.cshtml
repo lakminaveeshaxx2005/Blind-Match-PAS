@@ -1,0 +1,35 @@
+@model Blind_Match_PAS.Models.SupervisorPreferencesViewModel
+
+@{
+    ViewData["Title"] = "Preferred Research Areas";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Set Preferred Research Areas</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Enter comma-separated research area names to filter the blind proposal list for proposals that match your interests.</p>
+
+                    <form asp-action="Preferences" asp-controller="Project" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Expertise" class="form-label"></label>
+                            <textarea asp-for="Expertise" class="form-control" rows="4" placeholder="e.g. Artificial Intelligence, Machine Learning, Data Science"></textarea>
+                            <span asp-validation-for="Expertise" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Save Preferences</button>
+                        <a asp-action="Index" asp-controller="Project" class="btn btn-secondary ms-2">Back to Proposals</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

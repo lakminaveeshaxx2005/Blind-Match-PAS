@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,50 +8,90 @@ using System.Security.Claims;
 
 namespace Blind_Match_PAS.Controllers
 {
-    // Fixed: 'Controller' must be capitalized
+    [Authorize(Roles = "Student")]
     public class StudentController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CustomDbContext _context;
 
-        public StudentController(ApplicationDbContext context)
+        public StudentController(CustomDbContext context)
         {
             _context = context;
         }
 
-        // 1. GET: Displays the Project submission page
+        // 1. Dashboard: Displays the student's submitted proposals
+        public async Task<IActionResult> Dashboard()
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return Unauthorized();
+            }
+
+            var proposals = await _context.ProjectProposals
+                .Where(p => p.StudentId == studentId)
+                .Include(p => p.ResearchArea)
+                .ToListAsync();
+
+            return View(proposals);
+        }
+
+        // 2. GET: Displays the Proposal submission page
         public async Task<IActionResult> SubmitProposal()
         {
-            // Fetch Research Areas to populate the dropdown
             ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View();
         }
 
-        // 2. POST: Handles the form submission
+        // 3. POST: Handles the proposal form submission
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Fixed: Changed 'ProjectProposal' to 'Project' to match your model
         public async Task<IActionResult> SubmitProposal(ProjectProposal model)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userIdString != null)
             {
-                // Fixed: Converting String ID from Claims to Integer for the Model
-                if (int.TryParse(userIdString, out int userId))
-                {
-                    model.StudentId = userIdString;
-                    model.Status = ProjectStatus.Pending; // Matches the enum status in your ProjectProposal model
+                model.StudentId = userIdString;
+                model.Status = ProjectStatus.Pending;
 
-                    _context.Add(model);
-                    await _context.SaveChangesAsync();
+                _context.ProjectProposals.Add(model);
+                await _context.SaveChangesAsync();
 
-                    return RedirectToAction("Index", "Home");
-                }
+                return RedirectToAction("Dashboard");
             }
 
-            // If something fails, reload the dropdown and return the view
             ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View(model);
+        }
+
+        // 4. GET: Create Project
+        public IActionResult CreateProject()
+        {
+            return View();
+        }
+
+        // 5. POST: Create Project
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateProject(Project model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return Unauthorized();
+            }
+
+            model.StudentId = studentId;
+            _context.Projects.Add(model);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Your project was submitted successfully.";
+            return RedirectToAction("Dashboard");
         }
     }
 }

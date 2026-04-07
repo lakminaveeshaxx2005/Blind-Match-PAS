@@ -4,16 +4,18 @@ using Blind_Match_PAS.Models; // This allows the context to see your models
 
 namespace Blind_Match_PAS.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // Register your tables here:
+        // Only register the ApplicationUser here for Identity purposes
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public DbSet<ProjectProposal> ProjectProposals { get; set; }
-        public DbSet<ResearchArea> ResearchAreas { get; set; }
+
+        // Custom tables are now handled by CustomDbContext
+        // public DbSet<ProjectProposal> ProjectProposals { get; set; }
+        // public DbSet<ResearchArea> ResearchAreas { get; set; }
     }
 }

@@ -11,12 +11,14 @@ namespace Blind_Match_PAS.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly CustomDbContext _customContext;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        public AdminController(ApplicationDbContext context, CustomDbContext customContext, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _customContext = customContext;
             _userManager = userManager;
             _roleManager = roleManager;
         }
@@ -24,11 +26,11 @@ namespace Blind_Match_PAS.Controllers
         // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            ViewBag.TotalStudents = await _userManager.GetUsersInRoleAsync("Student");
-            ViewBag.TotalSupervisors = await _userManager.GetUsersInRoleAsync("Supervisor");
-            ViewBag.PendingProposals = await _context.ProjectProposals.CountAsync(p => p.Status == ProjectStatus.Pending);
-            ViewBag.MatchedProposals = await _context.ProjectProposals.CountAsync(p => p.Status == ProjectStatus.Matched);
-            ViewBag.TotalResearchAreas = await _context.ResearchAreas.CountAsync();
+            ViewBag.TotalStudents = (await _userManager.GetUsersInRoleAsync("Student")).Count;
+            ViewBag.TotalSupervisors = (await _userManager.GetUsersInRoleAsync("Supervisor")).Count;
+            ViewBag.PendingProposals = await _customContext.ProjectProposals.CountAsync(p => p.Status == ProjectStatus.Pending);
+            ViewBag.MatchedProposals = await _customContext.ProjectProposals.CountAsync(p => p.Status == ProjectStatus.Matched);
+            ViewBag.TotalResearchAreas = await _customContext.ResearchAreas.CountAsync();
             return View();
         }
 
@@ -37,7 +39,7 @@ namespace Blind_Match_PAS.Controllers
         // GET: Admin/ResearchAreas
         public async Task<IActionResult> ResearchAreas()
         {
-            var areas = await _context.ResearchAreas.ToListAsync();
+            var areas = await _customContext.ResearchAreas.ToListAsync();
             return View(areas);
         }
 
@@ -56,8 +58,8 @@ namespace Blind_Match_PAS.Controllers
             {
                 try
                 {
-                    _context.Add(model);
-                    await _context.SaveChangesAsync();
+                    _customContext.Add(model);
+                    await _customContext.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Research Area created successfully!";
                     return RedirectToAction("ResearchAreas");
                 }
@@ -72,7 +74,7 @@ namespace Blind_Match_PAS.Controllers
         // GET: Admin/ResearchAreas/Edit/{id}
         public async Task<IActionResult> EditResearchArea(int id)
         {
-            var area = await _context.ResearchAreas.FindAsync(id);
+            var area = await _customContext.ResearchAreas.FindAsync(id);
             if (area == null)
                 return NotFound();
             return View(area);
@@ -90,8 +92,8 @@ namespace Blind_Match_PAS.Controllers
             {
                 try
                 {
-                    _context.Update(model);
-                    await _context.SaveChangesAsync();
+                    _customContext.Update(model);
+                    await _customContext.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Research Area updated successfully!";
                     return RedirectToAction("ResearchAreas");
                 }
@@ -108,14 +110,14 @@ namespace Blind_Match_PAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteResearchArea(int id)
         {
-            var area = await _context.ResearchAreas.FindAsync(id);
+            var area = await _customContext.ResearchAreas.FindAsync(id);
             if (area == null)
                 return NotFound();
 
             try
             {
-                _context.ResearchAreas.Remove(area);
-                await _context.SaveChangesAsync();
+                _customContext.ResearchAreas.Remove(area);
+                await _customContext.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Research Area deleted successfully!";
             }
             catch (Exception ex)
@@ -130,7 +132,7 @@ namespace Blind_Match_PAS.Controllers
         // GET: Admin/Users
         public async Task<IActionResult> Users(string role = "")
         {
-            List<IdentityUser> users = new List<IdentityUser>();
+            List<ApplicationUser> users = new List<ApplicationUser>();
 
             if (string.IsNullOrEmpty(role))
             {
@@ -191,10 +193,18 @@ namespace Blind_Match_PAS.Controllers
         // GET: Admin/Matches
         public async Task<IActionResult> Matches()
         {
-            var matches = await _context.ProjectProposals
+            var matches = await _customContext.ProjectProposals
                 .Where(p => p.Status == ProjectStatus.Matched)
                 .Include(p => p.ResearchArea)
                 .ToListAsync();
+
+            // Fetch all student and supervisor names to display
+            var allUsers = await _userManager.Users.ToListAsync();
+            var nameMap = allUsers.ToDictionary(u => u.Id, u => u.FullName);
+
+            ViewBag.StudentNameMap = nameMap;
+            ViewBag.SupervisorNameMap = nameMap;
+            ViewBag.MatchedCount = matches.Count;
 
             return View(matches);
         }
@@ -204,7 +214,7 @@ namespace Blind_Match_PAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reassign(int proposalId, string newSupervisorId)
         {
-            var proposal = await _context.ProjectProposals.FindAsync(proposalId);
+            var proposal = await _customContext.ProjectProposals.FindAsync(proposalId);
             if (proposal == null)
                 return NotFound();
 

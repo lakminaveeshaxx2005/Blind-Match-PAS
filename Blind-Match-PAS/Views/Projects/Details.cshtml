@@ -1,0 +1,37 @@
+@model Blind_Match_PAS.Models.Project
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">@Model.Title</h2>
+            <div>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back to List</a>
+                @if (Model.StudentId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary ms-1">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger ms-1">Delete</a>
+                }
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Title</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Abstract</dt>
+                <dd class="col-sm-9">@Model.Abstract</dd>
+
+                <dt class="col-sm-3">Tech Stack</dt>
+                <dd class="col-sm-9">@Model.TechStack</dd>
+
+                <dt class="col-sm-3">Research Area</dt>
+                <dd class="col-sm-9">@Model.ResearchArea</dd>
+            </dl>
+        </div>
+    </div>
+</div>

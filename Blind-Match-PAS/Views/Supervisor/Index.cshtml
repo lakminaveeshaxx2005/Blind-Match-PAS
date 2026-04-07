@@ -55,7 +55,7 @@
                                     data-bs-target="#detailsModal@(proposal.Id)">
                                 View Details
                             </button>
-                            <form asp-action="AcceptProposal" asp-controller="Supervisor" method="post" class="mt-2">
+                            <form asp-action="ExpressInterest" asp-controller="Supervisor" method="post" class="mt-2">
                                 <input type="hidden" name="id" value="@proposal.Id" />
                                 <button type="submit" class="btn btn-success btn-sm w-100">
                                     Express Interest
@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <form asp-action="AcceptProposal" asp-controller="Supervisor" method="post"
+                                    <form asp-action="ExpressInterest" asp-controller="Supervisor" method="post"
                                           class="d-inline">
                                         <input type="hidden" name="id" value="@proposal.Id" />
                                         <button type="submit" class="btn btn-success">Express Interest</button>

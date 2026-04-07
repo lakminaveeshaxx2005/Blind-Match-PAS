@@ -7,100 +7,150 @@ using System.Security.Claims;
 
 namespace Blind_Match_PAS.Controllers
 {
+    /// <summary>
+    /// Supervisor controller for browsing student project proposals and expressing interest.
+    /// </summary>
     [Authorize(Roles = "Supervisor")]
     public class SupervisorController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CustomDbContext _customContext;
 
-        public SupervisorController(ApplicationDbContext context)
+        public SupervisorController(CustomDbContext customContext)
         {
-            _context = context;
+            _customContext = customContext;
         }
 
         // GET: Supervisor/Index
-        // Displays all pending project proposals (anonymized for supervisors)
+        // Shows pending project proposals to supervisors with blind matching.
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var pendingProposals = await _context.ProjectProposals
+            var proposals = await _customContext.ProjectProposals
                 .Where(p => p.Status == ProjectStatus.Pending)
                 .Include(p => p.ResearchArea)
                 .ToListAsync();
 
-            return View(pendingProposals);
+            return View(proposals);
         }
 
-        // POST: Supervisor/AcceptProposal
-        // Accepts a proposal and marks it as Matched, revealing identities
+        // POST: Supervisor/ExpressInterest
+        // Supervisor expresses interest in a pending proposal.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AcceptProposal(int id)
+        public async Task<IActionResult> ExpressInterest(int id)
         {
-            var proposal = await _context.ProjectProposals
+            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(supervisorId))
+            {
+                return Unauthorized("Supervisor ID not found.");
+            }
+
+            var proposal = await _customContext.ProjectProposals.FindAsync(id);
+            if (proposal == null)
+            {
+                TempData["ErrorMessage"] = "Proposal not found.";
+                return RedirectToAction("Index");
+            }
+
+            if (proposal.Status != ProjectStatus.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending proposals can be expressed interest in.";
+                return RedirectToAction("Index");
+            }
+
+            proposal.SupervisorId = supervisorId;
+            proposal.Status = ProjectStatus.Interested;
+            proposal.LastModifiedAt = DateTime.UtcNow;
+
+            try
+            {
+                _customContext.ProjectProposals.Update(proposal);
+                await _customContext.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Interest expressed successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error expressing interest: {ex.Message}";
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        // GET: Supervisor/Details/5
+        [HttpGet]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var proposal = await _customContext.ProjectProposals
                 .Include(p => p.ResearchArea)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id.Value);
 
             if (proposal == null)
             {
-                return NotFound("Proposal not found.");
+                return NotFound();
             }
 
-            // Get the current supervisor's ID
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentSupervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (proposal.Status != ProjectStatus.Pending && proposal.SupervisorId != currentSupervisorId)
+            {
+                return Forbid();
+            }
 
-            // Update proposal status and assign supervisor
+            return View(proposal);
+        }
+
+        // POST: Supervisor/ConfirmMatch
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmMatch(int id)
+        {
+            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(supervisorId))
+            {
+                return Unauthorized("Supervisor ID not found.");
+            }
+
+            var proposal = await _customContext.ProjectProposals.FindAsync(id);
+            if (proposal == null)
+            {
+                TempData["ErrorMessage"] = "Proposal not found.";
+                return RedirectToAction("Index");
+            }
+
+            if (proposal.SupervisorId != supervisorId)
+            {
+                TempData["ErrorMessage"] = "Only the supervisor who expressed interest can confirm this match.";
+                return RedirectToAction("Index");
+            }
+
+            if (proposal.Status != ProjectStatus.Interested)
+            {
+                TempData["ErrorMessage"] = "Only proposals with expressed interest can be confirmed.";
+                return RedirectToAction("Index");
+            }
+
             proposal.Status = ProjectStatus.Matched;
-            proposal.SupervisorId = supervisorId;
             proposal.IsIdentityRevealed = true;
             proposal.MatchedAt = DateTime.UtcNow;
             proposal.LastModifiedAt = DateTime.UtcNow;
 
             try
             {
-                _context.Update(proposal);
-                await _context.SaveChangesAsync();
+                _customContext.ProjectProposals.Update(proposal);
+                await _customContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error accepting proposal: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error confirming match: {ex.Message}";
                 return RedirectToAction("Index");
             }
 
-            // Redirect to MatchSuccess view
-            return RedirectToAction("MatchSuccess", new { id = proposal.Id });
-        }
-
-        // GET: Supervisor/MatchSuccess
-        // Displays matched proposal with revealed identities (only if Status is Matched)
-        public async Task<IActionResult> MatchSuccess(int id)
-        {
-            var proposal = await _context.ProjectProposals
-                .Include(p => p.ResearchArea)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (proposal == null)
-            {
-                return NotFound("Proposal not found.");
-            }
-
-            // Ensure identity reveal is only shown for matched proposals
-            if (proposal.Status != ProjectStatus.Matched)
-            {
-                return Forbid("Identities can only be revealed for matched proposals.");
-            }
-
-            // Retrieve student and supervisor information
-            var student = await _context.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == proposal.StudentId);
-            var supervisor = await _context.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == proposal.SupervisorId);
-
-            // Create view model with proposal and user details
-            var viewModel = new Dictionary<string, object>
-            {
-                { "Proposal", proposal },
-                { "Student", student },
-                { "Supervisor", supervisor }
-            };
-
-            return View(viewModel);
+            TempData["SuccessMessage"] = "Match confirmed successfully.";
+            return RedirectToAction("Details", new { id = proposal.Id });
         }
     }
 }

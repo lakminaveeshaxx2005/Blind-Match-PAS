@@ -1,0 +1,85 @@
+@model Blind_Match_PAS.Models.ProjectProposal
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Proposal Details";
+    var currentSupervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var canConfirm = Model.Status == ProjectStatus.Interested && Model.SupervisorId == currentSupervisorId;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="card-title mb-0">@Model.Title</h2>
+                <small class="text-muted">Proposal #@Model.Id</small>
+            </div>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back to Proposals</a>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-4">
+                <dt class="col-sm-3">Title</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Abstract</dt>
+                <dd class="col-sm-9">@Model.Abstract</dd>
+
+                <dt class="col-sm-3">Tech Stack</dt>
+                <dd class="col-sm-9">@Model.TechnicalStack</dd>
+
+                <dt class="col-sm-3">Research Area</dt>
+                <dd class="col-sm-9">@Model.ResearchArea?.Name</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    <span
+                        class="badge @(Model.Status == ProjectStatus.Matched ? "bg-success" : Model.Status == ProjectStatus.Interested ? "bg-primary" : "bg-warning")">
+                        @Model.Status
+                    </span>
+                </dd>
+            </dl>
+
+            @if (Model.Status == ProjectStatus.Matched)
+            {
+                <div class="alert alert-success">
+                    <h5 class="alert-heading">Match Confirmed</h5>
+                    <p>Student and supervisor identities are now visible.</p>
+                </div>
+                <dl class="row">
+                    <dt class="col-sm-3">Student ID</dt>
+                    <dd class="col-sm-9">@Model.StudentId</dd>
+
+                    <dt class="col-sm-3">Supervisor ID</dt>
+                    <dd class="col-sm-9">@Model.SupervisorId</dd>
+                </dl>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Student identity is hidden until the proposal is matched.
+                </div>
+            }
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            @if (canConfirm)
+            {
+                <form asp-action="ConfirmMatch" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-success">Confirm Match</button>
+                </form>
+            }
+            else if (Model.Status == ProjectStatus.Interested)
+            {
+                <span class="text-muted">Waiting for supervisor confirmation.</span>
+            }
+            else if (Model.Status == ProjectStatus.Pending)
+            {
+                <span class="text-muted">No interest expressed yet.</span>
+            }
+            else
+            {
+                <span class="text-muted">Current status: @Model.Status</span>
+            }
+        </div>
+    </div>
+</div>
