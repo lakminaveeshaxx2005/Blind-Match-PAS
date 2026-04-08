@@ -1,10 +1,16 @@
-﻿namespace BlindMatch.Tests;
-
-public class UnitTest1
+﻿namespace BlindMatch.Tests
 {
-    [Fact]
-    public void Test1()
+    /// <summary>
+    /// Placeholder test class.
+    /// See specific test files for implementation:
+    /// - MatchingServiceTests.cs: Matching algorithm tests
+    /// - ProjectProposalValidationTests.cs: Model validation tests
+    /// - DatabaseIntegrationTests.cs: Database operation tests
+    /// - SupervisorControllerTests.cs: Controller endpoint tests
+    /// </summary>
+    public class UnitTest1Placeholder
     {
-
+        // All tests moved to specialized test classes
     }
 }
+

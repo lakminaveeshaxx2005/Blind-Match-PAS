@@ -7,23 +7,66 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <h1>@ViewData["Title"]</h1>
-            <hr />
-
-            <form asp-action="CreateResearchArea" asp-controller="Admin" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">Area Name</label>
-                    <input asp-for="Name" class="form-control" placeholder="e.g., Artificial Intelligence" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> @ViewData["Title"]</h4>
                 </div>
+                <div class="card-body">
+                    <form asp-action="CreateResearchArea" asp-controller="Admin" method="post" novalidate>
+                        <div asp-validation-summary="All" class="alert alert-danger" role="alert">
+                            <h5>Please correct the following errors:</h5>
+                        </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Create Area</button>
-                    <a href="@Url.Action("ResearchAreas", "Admin")" class="btn btn-secondary">Cancel</a>
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">
+                                <span class="text-danger">*</span> Research Area Name
+                            </label>
+                            <input asp-for="Name" class="form-control"
+                                   placeholder="e.g., Artificial Intelligence, Machine Learning, Web Development"
+                                   minlength="3" maxlength="100" required />
+                            <div class="form-text text-muted">
+                                3-100 characters | <span id="nameCount">0</span>/100
+                            </div>
+                            <span asp-validation-for="Name" class="text-danger d-block mt-1"></span>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check"></i> Create Area
+                            </button>
+                            <a href="@Url.Action("ResearchAreas", "Admin")" class="btn btn-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nameField = document.getElementById('Name');
+            if (nameField) {
+                document.getElementById('nameCount').textContent = nameField.value.length;
+                nameField.addEventListener('input', function () {
+                    document.getElementById('nameCount').textContent = this.value.length;
+                });
+            }
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,103 @@
+@model IEnumerable<Blind_Match_PAS.Services.SupervisorMatch>
+
+@{
+    ViewData["Title"] = "Find Matching Supervisors";
+    var proposalId = ViewBag.ProposalId;
+    var proposalTitle = ViewBag.ProposalTitle;
+    var matchCount = ViewBag.MatchCount ?? 0;
+    var appliedSupervisorIds = ViewBag.AppliedSupervisorIds as HashSet<string> ?? new HashSet<string>();
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h1>Find Matching Supervisors</h1>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <strong>Proposal:</strong> <em>@proposalTitle</em>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model.Any())
+            {
+                <p class="alert alert-info">
+                    Found <strong>@matchCount</strong> matching supervisor(s) for your proposal.
+                </p>
+
+                <div class="row">
+                    @foreach (var match in Model)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">@match.SupervisorName</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Expertise:</strong></p>
+                                    <p class="text-muted">@match.Expertise</p>
+                                    
+                                    <div class="mt-3">
+                                        <strong>Match Score:</strong>
+                                        <span class="badge bg-success fs-6">@match.MatchScore points</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    @if (appliedSupervisorIds.Contains(match.SupervisorId))
+                                    {
+                                        <span class="badge bg-warning text-dark">Already Applied</span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="ApplyToSupervisor" asp-controller="Student" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="supervisorId" value="@match.SupervisorId" />
+                                            <input type="hidden" name="proposalId" value="@proposalId" />
+                                            <button type="submit" class="btn btn-primary btn-sm"
+                                                    onclick="return confirm('Are you sure you want to apply to this supervisor?');">
+                                                <i class="bi bi-check-circle"></i> Apply
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning" role="alert">
+                    <h5>No matches found yet</h5>
+                    <p>We couldn't find any supervisors matching your proposal's keywords. You may want to:</p>
+                    <ul>
+                        <li>Review your proposal's abstract and technical stack</li>
+                        <li>Add more relevant keywords to help find matching supervisors</li>
+                        <li>Check if supervisors have added their expertise profiles</li>
+                    </ul>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-controller="Student" asp-action="Dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

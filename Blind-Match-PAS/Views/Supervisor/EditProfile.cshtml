@@ -1,0 +1,48 @@
+@model Blind_Match_PAS.Models.SupervisorProfileViewModel
+
+@{
+    ViewData["Title"] = "Edit Supervisor Profile";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-person-badge"></i> Manage Expertise & Research Interests</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="Expertise" class="form-label"></label>
+                            <textarea asp-for="Expertise" class="form-control" rows="4" placeholder="e.g. Artificial Intelligence, Machine Learning, Cloud Architecture"></textarea>
+                            <span asp-validation-for="Expertise" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResearchInterest" class="form-label"></label>
+                            <textarea asp-for="ResearchInterest" class="form-control" rows="3" placeholder="e.g. AI Ethics, Data Privacy, Distributed Systems"></textarea>
+                            <span asp-validation-for="ResearchInterest" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Save Profile
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

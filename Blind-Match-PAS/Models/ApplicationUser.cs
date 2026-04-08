@@ -24,6 +24,11 @@ namespace Blind_Match_PAS.Models
         [Display(Name = "Expertise")]
         public string? Expertise { get; set; }
 
+        [StringLength(500, ErrorMessage = "Research Interest field cannot exceed 500 characters.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s,.\-&()]*$", ErrorMessage = "Research Interest contains invalid characters.")]
+        [Display(Name = "Research Interest")]
+        public string? ResearchInterest { get; set; }
+
         [Display(Name = "Registration Date")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -1,0 +1,111 @@
+@model Blind_Match_PAS.Models.BlindReviewViewModel
+
+@{
+    ViewData["Title"] = "Blind Review";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-eye-slash"></i> Blind Review
+            </h1>
+            <p class="text-muted">Review student project requests anonymously. Personal information is hidden to ensure
+                fair evaluation.</p>
+            </div>
+        </div>
+
+        @if (Model.ReviewItems.Any())
+        {
+            <!-- Review Items -->
+            <div class="row">
+                @foreach (var item in Model.ReviewItems)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-file-earmark-text"></i> @item.ProjectTitle
+                                </h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Project Abstract</h6>
+                                    <p class="card-text">@item.ProjectAbstract</p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Tech Stack</h6>
+                                    <p class="card-text">
+                                        <span class="badge bg-secondary">@item.TechStack</span>
+                                    </p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Research Areas</h6>
+                                    <p class="card-text">
+                                        <span class="badge bg-info">@item.ResearchAreas</span>
+                                    </p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Match Score</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                 style="width: @(item.MatchScore > 0 ? (item.MatchScore * 10) : 0)%;"
+                                                 aria-valuenow="@item.MatchScore" aria-valuemin="0" aria-valuemax="10">
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold">@item.MatchScore/10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <div class="d-flex justify-content-between flex-wrap gap-2">
+                                    <form asp-controller="Matching" asp-action="ApproveRequest" method="post" class="me-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@item.RequestId" />
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form asp-controller="Supervisor" asp-action="ConfirmMatch" method="post" class="me-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@item.RequestId" />
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-hand-thumbs-up"></i> Confirm Match
+                                        </button>
+                                    </form>
+                                    <form asp-controller="Matching" asp-action="RejectRequest" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@item.RequestId" />
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- No Requests Message -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="bi bi-info-circle-fill fs-1"></i>
+                        <h4 class="alert-heading mt-3">No Pending Requests</h4>
+                        <p>You currently have no pending matching requests to review.</p>
+                        <a href="@Url.Action("Index", "Supervisor")" class="btn btn-primary">
+                            <i class="bi bi-house"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>

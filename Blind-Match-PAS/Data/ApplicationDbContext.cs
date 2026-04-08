@@ -14,6 +14,9 @@ namespace Blind_Match_PAS.Data
         // Only register the ApplicationUser here for Identity purposes
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
+        // Add MatchingRequest to ApplicationDbContext
+        public DbSet<MatchingRequest> MatchingRequests { get; set; }
+
         // Custom tables are now handled by CustomDbContext
         // public DbSet<ProjectProposal> ProjectProposals { get; set; }
         // public DbSet<ResearchArea> ResearchAreas { get; set; }

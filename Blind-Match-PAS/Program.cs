@@ -44,6 +44,10 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSingleton<IAuthorizationHandler, ProposalOwnershipHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, SupervisorMatchingHandler>();
 
+// Register repositories and services
+builder.Services.AddScoped<Blind_Match_PAS.Repositories.IMatchingRequestRepository, Blind_Match_PAS.Repositories.MatchingRequestRepository>();
+builder.Services.AddScoped<Blind_Match_PAS.Services.IMatchingService, Blind_Match_PAS.Services.MatchingService>();
+
 // 4. Add MVC Services: Enables Controllers and Views
 builder.Services.AddControllersWithViews();
 
@@ -57,8 +61,8 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    dbContext.Database.Migrate(); // Ensure identity schema is created on startup
-    customDbContext.Database.Migrate(); // Ensure custom tables are created on startup
+    //dbContext.Database.Migrate(); // Ensure identity schema is created on startup
+    //customDbContext.Database.Migrate(); // Ensure custom tables are created on startup
 
     // Seed Roles
     var roles = new[] { "Admin", "Student", "Supervisor" };
@@ -124,6 +128,28 @@ using (var scope = app.Services.CreateScope())
     if (!await userManager.IsInRoleAsync(studentUser, "Student"))
     {
         await userManager.AddToRoleAsync(studentUser, "Student");
+    }
+
+    // Seed Supervisor User
+    var supervisorEmail = "supervisor1@test.com";
+    var supervisorUser = await userManager.FindByEmailAsync(supervisorEmail);
+    if (supervisorUser == null)
+    {
+        supervisorUser = new ApplicationUser
+        {
+            UserName = supervisorEmail,
+            Email = supervisorEmail,
+            EmailConfirmed = true,
+            FullName = "Test Supervisor",
+            UserRole = "Supervisor",
+            Expertise = "Artificial Intelligence, Machine Learning, IoT, Python, TensorFlow"
+        };
+        await userManager.CreateAsync(supervisorUser, "SupervisorPassword@123");
+    }
+    // Ensure the user is in the Supervisor role
+    if (!await userManager.IsInRoleAsync(supervisorUser, "Supervisor"))
+    {
+        await userManager.AddToRoleAsync(supervisorUser, "Supervisor");
     }
 }
 

@@ -7,60 +7,90 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h1>@ViewData["Title"]</h1>
-            <hr />
-
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> @ViewData["Title"]</h4>
                 </div>
-            }
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> You can only edit proposals with "Pending" status. Once a supervisor
+                        expresses interest, the proposal will be locked.
+                    </div>
 
-            <form asp-action="Edit" asp-controller="ProjectProposals" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <input type="hidden" asp-for="Id" />
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
 
-                <div class="mb-3">
-                    <label asp-for="Title" class="form-label"></label>
-                    <input asp-for="Title" class="form-control" placeholder="e.g., AI-Powered Recommendation System" />
-                    <span asp-validation-for="Title" class="text-danger"></span>
-                    <small class="form-text text-muted">
-                        Must start with an uppercase letter and be 5-200 characters long.
-                    </small>
+                    <form asp-action="Edit" asp-controller="ProjectProposals" method="post" novalidate>
+                        <div asp-validation-summary="All" class="alert alert-danger d-none" id="validationSummary"
+                             role="alert">
+                            <h5>Please correct the following errors:</h5>
+                        </div>
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">
+                                <span class="text-danger">*</span> Project Title
+                            </label>
+                            <input asp-for="Title" class="form-control"
+                                   placeholder="e.g., AI-Powered Recommendation System" minlength="5" maxlength="200"
+                                   required />
+                            <div class="form-text text-muted">
+                                5-200 characters | <span id="titleCount">0</span>/200
+                            </div>
+                            <span asp-validation-for="Title" class="text-danger d-block mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Abstract" class="form-label">
+                                <span class="text-danger">*</span> Project Description
+                            </label>
+                            <textarea asp-for="Abstract" class="form-control" rows="4"
+                                      placeholder="Describe your project proposal in detail..." minlength="20"
+                                      maxlength="1000" required></textarea>
+                            <div class="form-text text-muted">
+                                20-1000 characters | <span id="abstractCount">0</span>/1000
+                            </div>
+                            <span asp-validation-for="Abstract" class="text-danger d-block mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TechnicalStack" class="form-label">
+                                <span class="text-danger">*</span> Technical Stack
+                            </label>
+                            <input asp-for="TechnicalStack" class="form-control"
+                                   placeholder="e.g., Python, TensorFlow, React, Node.js" minlength="5" maxlength="500"
+                                   required />
+                            <div class="form-text text-muted">
+                                5-500 characters | <span id="stackCount">0</span>/500
+                            </div>
+                            <span asp-validation-for="TechnicalStack" class="text-danger d-block mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResearchAreaId" class="form-label">Research Area</label>
+                            <select asp-for="ResearchAreaId" class="form-select" asp-items="ViewBag.ResearchAreas">
+                                <option value="">-- Select a Research Area --</option>
+                            </select>
+                            <span asp-validation-for="ResearchAreaId" class="text-danger d-block mt-1"></span>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check"></i> Update Proposal
+                            </button>
+                            <a href="@Url.Action("Index", "ProjectProposals")" class="btn btn-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Abstract" class="form-label"></label>
-                    <textarea asp-for="Abstract" class="form-control" rows="4"
-                              placeholder="Describe your project proposal (20-1000 characters)"></textarea>
-                    <span asp-validation-for="Abstract" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="TechnicalStack" class="form-label"></label>
-                    <input asp-for="TechnicalStack" class="form-control"
-                           placeholder="e.g., Python, TensorFlow, React, Node.js" />
-                    <span asp-validation-for="TechnicalStack" class="text-danger"></span>
-                    <small class="form-text text-muted">
-                        List the technologies and frameworks you'll use (5-500 characters).
-                    </small>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="ResearchAreaId" class="form-label"></label>
-                    <select asp-for="ResearchAreaId" class="form-select" asp-items="ViewBag.ResearchAreas">
-                        <option value="">-- Select a Research Area --</option>
-                    </select>
-                    <span asp-validation-for="ResearchAreaId" class="text-danger"></span>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Update Proposal</button>
-                    <a href="@Url.Action("Index", "ProjectProposals")" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -69,4 +99,43 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Character count updates
+            const titleField = document.getElementById('Title');
+            const abstractField = document.getElementById('Abstract');
+            const stackField = document.getElementById('TechnicalStack');
+
+            if (titleField) {
+                document.getElementById('titleCount').textContent = titleField.value.length;
+                titleField.addEventListener('input', function () {
+                    document.getElementById('titleCount').textContent = this.value.length;
+                });
+            }
+
+            if (abstractField) {
+                document.getElementById('abstractCount').textContent = abstractField.value.length;
+                abstractField.addEventListener('input', function () {
+                    document.getElementById('abstractCount').textContent = this.value.length;
+                });
+            }
+
+            if (stackField) {
+                document.getElementById('stackCount').textContent = stackField.value.length;
+                stackField.addEventListener('input', function () {
+                    document.getElementById('stackCount').textContent = this.value.length;
+                });
+            }
+
+            // Form validation
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
 }

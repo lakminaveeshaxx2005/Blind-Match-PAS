@@ -130,6 +130,10 @@ namespace Blind_Match_PAS.Areas.Identity.Pages.Account
                     {
                         await _roleManager.CreateAsync(new IdentityRole("Supervisor"));
                     }
+                    if (!await _roleManager.RoleExistsAsync("Admin"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                    }
 
                     var user = await _userManager.FindByEmailAsync(Input.Email);
                     if (user != null && Input.Email == "student1@test.com" && !await _userManager.IsInRoleAsync(user, "Student"))
@@ -137,7 +141,24 @@ namespace Blind_Match_PAS.Areas.Identity.Pages.Account
                         await _userManager.AddToRoleAsync(user, "Student");
                     }
 
-                    return LocalRedirect(returnUrl);
+                    // Role-based redirection after login
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains("Admin"))
+                    {
+                        return RedirectToAction("Dashboard", "Admin");
+                    }
+                    else if (roles.Contains("Supervisor"))
+                    {
+                        return RedirectToAction("Index", "Supervisor");
+                    }
+                    else if (roles.Contains("Student"))
+                    {
+                        return RedirectToAction("Dashboard", "Student");
+                    }
+                    else
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
                 }
                 if (result.RequiresTwoFactor)
                 {

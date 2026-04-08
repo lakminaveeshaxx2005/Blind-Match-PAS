@@ -19,6 +19,7 @@
                 <th>Research Area</th>
                 <th>Status</th>
                 <th>Submitted At</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -29,8 +30,16 @@
                     <td>@proposal.Abstract</td>
                     <td>@proposal.TechnicalStack</td>
                     <td>@proposal.ResearchArea?.Name</td>
-                    <td>@proposal.Status</td>
+                    <td>
+                        <span class="badge badge-info">@proposal.Status</span>
+                    </td>
                     <td>@proposal.CreatedAt.ToString("g")</td>
+                    <td>
+                        <a asp-controller="Student" asp-action="FindMatches" asp-route-proposalId="@proposal.Id"
+                               class="btn btn-sm btn-primary">
+                            Find Matches
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

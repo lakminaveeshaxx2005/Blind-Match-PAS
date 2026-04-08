@@ -1,0 +1,105 @@
+@model IEnumerable<Blind_Match_PAS.Models.UserWithRole>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>@ViewData["Title"]</h1>
+            <p class="text-muted">Manage all users and assign roles to students, supervisors, or admins.</p>
+        </div>
+        <div>
+            <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-primary">
+                <i class="bi bi-person-plus-fill"></i> Create New User
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="btn-group" role="group" aria-label="Role filter">
+                        <a href="@Url.Action("Users", "Admin")"
+                           class="btn btn-outline-primary @(ViewBag.SelectedRole == "" ? "active" : "")">All Users</a>
+                        @foreach (var role in ViewBag.Roles as string[])
+                        {
+                            <a href="@Url.Action("Users", "Admin", new { role = role })"
+                               class="btn btn-outline-primary @(ViewBag.SelectedRole == role ? "active" : "")">@role</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Email</th>
+                            <th>Full Name</th>
+                            <th>Roles</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.User.Email</td>
+                                <td>@item.User.FullName</td>
+                                <td>
+                                    @if (item.Roles.Any())
+                                    {
+                                        @foreach (var role in item.Roles)
+                                        {
+                                            <span class="badge bg-info text-dark me-1">@role</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No Role</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("EditUser", "Admin", new { userId = item.User.Id })"
+                                           class="btn btn-sm btn-outline-primary me-2">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                    <a href="@Url.Action("AssignRole", "Admin", new { userId = item.User.Id })"
+                                           class="btn btn-sm btn-outline-warning me-2">
+                                        <i class="bi bi-person-badge"></i> Role
+                                    </a>
+                                    <form asp-action="DeleteUser" asp-controller="Admin" method="post" class="d-inline"
+                                          onsubmit="return confirm('Delete this user permanently?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@item.User.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

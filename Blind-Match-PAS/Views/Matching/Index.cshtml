@@ -1,0 +1,78 @@
+@model IEnumerable<Blind_Match_PAS.Services.SupervisorMatch>
+
+@{
+    ViewData["Title"] = "Find Matching Supervisors";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-binoculars"></i> Find Your Matching Supervisor
+            </h1>
+            <p class="text-muted">Based on your research interests, we've identified supervisors with matching expertise
+            </p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info alert-lg" role="alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>No supervisors found</strong>
+            <p class="mb-0">Please update your research interests in your profile to discover matching supervisors.</p>
+        </div>
+    }
+    else
+    {
+        <p class="mb-4">
+            <strong>Found @Model.Count()</strong> supervisor(s) sorted by relevance to your research interests.
+        </p>
+
+        <div class="row">
+            @foreach (var match in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow h-100 position-relative">
+                        <!-- Match Score Badge -->
+                        <div class="position-absolute top-0 end-0 p-3">
+                            <span class="badge bg-success" style="font-size: 0.9rem;">
+                                <i class="bi bi-star-fill"></i> Match @match.MatchScore%
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-person-badge"></i> @match.SupervisorName
+                            </h5>
+
+                            <div class="mb-3">
+                                <strong class="d-block text-muted small">Expertise</strong>
+                                <p class="card-text">@match.Expertise</p>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <form asp-action="ApplyForSupervisor" asp-controller="Matching" method="post" class="w-100">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="supervisorId" value="@match.SupervisorId" />
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-hand-thumbs-up"></i> Apply
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="MyRequests" asp-controller="Matching" class="btn btn-outline-primary me-2">
+            <i class="bi bi-list-check"></i> View My Requests
+        </a>
+        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>

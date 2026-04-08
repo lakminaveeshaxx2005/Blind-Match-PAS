@@ -1,0 +1,85 @@
+@model IEnumerable<Blind_Match_PAS.Models.MatchingRequest>
+
+@{
+    ViewData["Title"] = "Matching Requests";
+}
+
+<h1>Matching Requests</h1>
+
+@if (!Model.Any())
+{
+    <p>No matching requests received yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Student Email</th>
+                <th>Status</th>
+                <th>Requested At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+                <tr>
+                    <td>
+                        @if (request.Status == Blind_Match_PAS.Models.MatchingRequestStatus.Accepted)
+                        {
+                            @request.Student.FullName
+                        }
+                        else
+                        {
+                            <em>Identity Hidden</em>
+                        }
+                    </td>
+                    <td>
+                        @if (request.Status == Blind_Match_PAS.Models.MatchingRequestStatus.Accepted)
+                        {
+                            @request.Student.Email
+                        }
+                        else
+                        {
+                            <em>Anonymous</em>
+                        }
+                    </td>
+                    <td>
+                        <span
+                            class="badge @(request.Status == Blind_Match_PAS.Models.MatchingRequestStatus.Pending ? "bg-warning" :
+                                                                                                                                                                                                             request.Status == Blind_Match_PAS.Models.MatchingRequestStatus.Accepted ? "bg-success" : "bg-danger")">
+                            @request.Status
+                        </span>
+                    </td>
+                    <td>@request.CreatedAt.ToString("g")</td>
+                    <td>
+                        @if (request.Status == Blind_Match_PAS.Models.MatchingRequestStatus.Pending)
+                        {
+                            <form asp-action="ApproveRequest" asp-controller="Matching" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@request.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+
+                            <form asp-action="RejectRequest" asp-controller="Matching" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@request.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Processed</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div>
+    <a asp-action="Index" asp-controller="Supervisor" class="btn btn-secondary">Back to Dashboard</a>
+</div>

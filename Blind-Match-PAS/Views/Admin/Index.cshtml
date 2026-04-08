@@ -1,0 +1,233 @@
+﻿@model Blind_Match_PAS.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                <div>
+                    <h1 class="display-5 fw-bold"><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
+                    <p class="text-muted">Complete system oversight for students, supervisors, proposals, requests, and allocations.</p>
+                </div>
+                <div class="text-end">
+                    <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-primary me-2"><i class="bi bi-people"></i> Manage Users</a>
+                    <a href="@Url.Action("Matches", "Admin")" class="btn btn-primary"><i class="bi bi-diagram-3-fill"></i> Manage Allocations</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Total Students</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-0">@Model.Statistics.TotalStudents</h2>
+                            <small class="text-muted">Active student accounts</small>
+                        </div>
+                        <i class="bi bi-mortarboard-fill fs-1 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Total Supervisors</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-0">@Model.Statistics.TotalSupervisors</h2>
+                            <small class="text-muted">Active supervisor accounts</small>
+                        </div>
+                        <i class="bi bi-person-badge-fill fs-1 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Total Proposals</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-0">@Model.Statistics.TotalProposals</h2>
+                            <small class="text-muted">Project proposals submitted</small>
+                        </div>
+                        <i class="bi bi-file-earmark-text-fill fs-1 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Total Matches</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-0">@Model.Statistics.TotalMatches</h2>
+                            <small class="text-muted">Student-supervisor allocations</small>
+                        </div>
+                        <i class="bi bi-hand-thumbs-up-fill fs-1 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Pending Requests</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-0">@Model.Statistics.PendingRequests</h2>
+                            <small class="text-muted">Requests awaiting review</small>
+                        </div>
+                        <i class="bi bi-clock-fill fs-1 text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <a class="text-decoration-none" href="@Url.Action("Users", "Admin")">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">User Management</h6>
+                            <p class="mb-0 text-muted">View all students and supervisors, create accounts, and assign roles.</p>
+                        </div>
+                        <i class="bi bi-person-lines-fill fs-1 text-primary"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <a class="text-decoration-none" href="@Url.Action("Matches", "Admin")">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">Allocation Oversight</h6>
+                            <p class="mb-0 text-muted">Review matches, reassign supervisors, and manage allocations.</p>
+                        </div>
+                        <i class="bi bi-diagram-3-fill fs-1 text-success"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-12 mb-3">
+            <a class="text-decoration-none" href="@Url.Action("Requests", "Admin")">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">Request Monitoring</h6>
+                            <p class="mb-0 text-muted">Monitor all pending, accepted, and rejected requests.</p>
+                        </div>
+                        <i class="bi bi-list-check fs-1 text-warning"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-handshake"></i> Recent Matches</h5>
+                </div>
+                <div class="card-body">
+                    @if (!Model.RecentMatches.Any())
+                    {
+                        <div class="alert alert-info mb-0">No matches have been recorded yet.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Project</th>
+                                        <th>Student</th>
+                                        <th>Supervisor</th>
+                                        <th>Matched</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var match in Model.RecentMatches)
+                                    {
+                                        <tr>
+                                            <td>@match.ProjectTitle</td>
+                                            <td>@match.StudentName</td>
+                                            <td>@match.SupervisorName</td>
+                                            <td>@match.MatchedAt?.ToString("MMM dd, yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Pending Proposals</h5>
+                </div>
+                <div class="card-body">
+                    @if (!Model.PendingProposals.Any())
+                    {
+                        <div class="alert alert-info mb-0">There are no pending proposals waiting on review.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Project</th>
+                                        <th>Student</th>
+                                        <th>Pending</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var proposal in Model.PendingProposals)
+                                    {
+                                        <tr>
+                                            <td>@proposal.Title</td>
+                                            <td>@proposal.StudentName</td>
+                                            <td><span class="badge bg-danger">@proposal.DaysPending days</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

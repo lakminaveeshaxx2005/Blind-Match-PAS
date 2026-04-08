@@ -6,9 +6,9 @@ namespace Blind_Match_PAS.Models
     public class SupervisorProjectProposalViewModel
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Abstract { get; set; }
-        public string TechnicalStack { get; set; }
+        public required string Title { get; set; }
+        public required string Abstract { get; set; }
+        public required string TechnicalStack { get; set; }
         public string? ResearchAreaName { get; set; }
         public ProjectStatus Status { get; set; }
         public string? StudentId { get; set; }
@@ -23,9 +23,9 @@ namespace Blind_Match_PAS.Models
     public class StudentProjectProposalViewModel
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Abstract { get; set; }
-        public string TechnicalStack { get; set; }
+        public required string Title { get; set; }
+        public required string Abstract { get; set; }
+        public required string TechnicalStack { get; set; }
         public string? ResearchAreaName { get; set; }
         public ProjectStatus Status { get; set; }
         public string? SupervisorId { get; set; }

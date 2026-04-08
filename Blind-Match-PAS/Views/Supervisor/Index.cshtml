@@ -1,110 +1,1078 @@
-@model IEnumerable<Blind_Match_PAS.Models.ProjectProposal>
+@model Blind_Match_PAS.Models.SupervisorDashboardViewModel
 
 @{
-    ViewData["Title"] = "Pending Project Proposals";
+    ViewData["Title"] = "Supervisor Dashboard";
 }
 
-<div class="container mt-5">
-    <h1>@ViewData["Title"]</h1>
-    <p class="text-muted">Browse pending project proposals from students. Student identities are kept anonymous.</p>
-    <hr />
-
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info" role="alert">
-            No pending project proposals at this time.
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+            <div>
+                <h1 class="display-5 fw-bold">
+                    <i class="bi bi-speedometer2"></i> Supervisor Dashboard
+                </h1>
+                <p class="text-muted">Manage your project proposals and matches with anonymity protection</p>
+            </div>
+            <div>
+                <a asp-action="EditProfile" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil-square"></i> Manage Expertise
+                </a>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="row">
-            @foreach (var proposal in Model)
-            {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">@proposal.Title</h5>
-                            <p class="card-text text-muted">
-                                <strong>Research Area:</strong> @proposal.ResearchArea?.Name
-                            </p>
+    </div>
 
-                            <div class="mb-3">
-                                <h6 class="card-subtitle mb-2">Abstract</h6>
-                                <p class="card-text">
-                                    @if (proposal.Abstract.Length > 150)
-                                    {
-                                        @proposal.Abstract.Substring(0, 150)
-                                        <span>...</span>
-                                    }
-                                    else
-                                    {
-                                        @proposal.Abstract
-                                    }
-                                </p>
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="card-subtitle mb-2">Technical Stack</h6>
-                                <p class="card-text">
-                                    <small class="text-muted">@proposal.TechnicalStack</small>
-                                </p>
-                            </div>
+    <!-- Enhanced Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Pending Requests Card -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2"
+                                style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-clock"></i> Pending Requests
+                            </h6>
+                            <h2 class="fw-bold mb-0 text-warning">@Model.TotalPendingRequests</h2>
+                            <small class="text-muted">Waiting for your action</small>
                         </div>
-                        <div class="card-footer bg-white border-top">
-                            <button type="button" class="btn btn-primary btn-sm w-100" data-bs-toggle="modal"
-                                    data-bs-target="#detailsModal@(proposal.Id)">
-                                View Details
-                            </button>
-                            <form asp-action="ExpressInterest" asp-controller="Supervisor" method="post" class="mt-2">
-                                <input type="hidden" name="id" value="@proposal.Id" />
-                                <button type="submit" class="btn btn-success btn-sm w-100">
-                                    Express Interest
-                                </button>
-                            </form>
+                        <div class="text-warning" style="font-size: 3rem; opacity: 0.2;">
+                            <i class="bi bi-hourglass-split"></i>
                         </div>
                     </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar bg-warning" role="progressbar"
+                             style="width: @(Model.TotalPendingRequests > 0 ? "100%" : "0%")"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Modal for Full Details -->
-                    <div class="modal fade" id="detailsModal@(proposal.Id)" tabindex="-1"
-                         aria-labelledby="detailsModalLabel@(proposal.Id)" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="detailsModalLabel@(proposal.Id)">@proposal.Title</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Accepted Matches Card -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2"
+                                style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-check-circle"></i> Accepted Matches
+                            </h6>
+                            <h2 class="fw-bold mb-0 text-success">@Model.TotalAcceptedRequests</h2>
+                            <small class="text-muted">@Model.TotalAcceptedRequests of @Model.MaxStudentLimit</small>
+                        </div>
+                        <div class="text-success" style="font-size: 3rem; opacity: 0.2;">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: @((Model.TotalAcceptedRequests * 100) / Model.MaxStudentLimit)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejected Requests Card -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2"
+                                style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-x-circle"></i> Rejected
+                            </h6>
+                            <h2 class="fw-bold mb-0 text-danger">@Model.TotalRejectedRequests</h2>
+                            <small class="text-muted">Not interested</small>
+                        </div>
+                        <div class="text-danger" style="font-size: 3rem; opacity: 0.2;">
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar bg-danger" role="progressbar"
+                             style="width: @(Model.TotalRejectedRequests > 0 ? "100%" : "0%")"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Reviews Card -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2"
+                                style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-eye"></i> Pending Reviews
+                            </h6>
+                            <h2 class="fw-bold mb-0 text-info">@Model.TotalPendingProposals</h2>
+                            <small class="text-muted">Blind review available</small>
+                        </div>
+                        <div class="text-info" style="font-size: 3rem; opacity: 0.2;">
+                            <i class="bi bi-file-earmark"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar bg-info" role="progressbar"
+                             style="width: @(Model.TotalPendingProposals > 0 ? "100%" : "0%")"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supervisor Limit Warning -->
+    @if (!string.IsNullOrEmpty(Model.SupervisorLimitError))
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>Student Limit Reached!</strong>
+                    <br />
+                    <span>@Model.SupervisorLimitError</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Matching Requests Section (Higher Priority) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">
+                    <i class="bi bi-envelope-fill"></i> Matching Requests - Student Applications
+                    <span class="badge bg-light text-danger ms-2">@Model.TotalPendingRequests Pending</span>
+                </h5>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Note:</strong> These are applications from students who have selected you as their preferred
+                supervisor.
+                Their identities are anonymous until you accept the request.
+            </p>
+
+            @if (Model.MatchingRequests == null || !Model.MatchingRequests.Any())
+            {
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle me-2"></i> No matching requests at this time. Check back later!
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var request in Model.MatchingRequests)
+                    {
+                        <div class="col-xl-4 col-lg-6 mb-3">
+                            <div class="card h-100 border-left-4 border-danger shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">
+                                            <i class="bi bi-file-text"></i> @request.Title
+                                        </h6>
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-calendar"></i> Requested @request.RequestedAt.ToString("MMM dd, yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(request.ResearchArea))
+                                    {
+                                        <span class="badge bg-danger text-white ms-2">@request.ResearchArea</span>
+                                    }
                                 </div>
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold">Research Area</h6>
-                                        <p>@proposal.ResearchArea?.Name</p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold">Abstract</h6>
-                                        <p>@proposal.Abstract</p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold">Technical Stack</h6>
-                                        <p>@proposal.TechnicalStack</p>
-                                    </div>
-                                    <div class="alert alert-info" role="alert">
-                                        <strong>Note:</strong> Student identity is kept anonymous to ensure unbiased evaluation.
+                                <div class="card-body">
+                                    <p class="mb-3">
+                                        <strong>Abstract:</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @(request.Abstract.Length > 120 ? request.Abstract.Substring(0, 120) + "..." :
+                                    request.Abstract)
+                                        </small>
+                                    </p>
+
+                                    <p class="mb-3">
+                                        <strong>Technical Stack:</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @(request.TechnicalStack.Length > 100 ? request.TechnicalStack.Substring(0, 100) +
+                       "..." : request.TechnicalStack)
+                                        </small>
+                                    </p>
+
+                                    @if (request.MatchScore > 0)
+                                    {
+                                        <div class="mb-2">
+                                            <strong>Match Score:</strong>
+                                            <br />
+                                            <span class="badge bg-info">@request.MatchScore points</span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-footer bg-light d-flex gap-2 flex-column">
+                                    <button type="button" class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal"
+                                            data-bs-target="#requestModal@(request.RequestId)">
+                                        <i class="bi bi-eye me-1"></i> View Full Details
+                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <form asp-action="RejectRequest" asp-controller="Supervisor" method="post"
+                                              class="flex-grow-1">
+                                            <input type="hidden" name="requestId" value="@request.RequestId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                                                    onclick="return confirm('Are you sure you want to reject this request? The student will be notified.');">
+                                                <i class="bi bi-x-circle me-1"></i> Reject
+                                            </button>
+                                        </form>
+                                        <form asp-action="AcceptRequest" asp-controller="Supervisor" method="post"
+                                              class="flex-grow-1">
+                                            <input type="hidden" name="requestId" value="@request.RequestId" />
+                                            <button type="submit" class="btn btn-sm btn-success w-100" @if
+                                                (Model.TotalAcceptedRequests >= Model.MaxStudentLimit) {
+                                                    <text>disabled</text>
+                                                }
+                                                    onclick="return confirm('Are you sure you want to accept this request? The
+                                                student identity will be revealed.');">
+                                                <i class="bi bi-check-circle me-1"></i> Accept
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <form asp-action="ExpressInterest" asp-controller="Supervisor" method="post"
-                                          class="d-inline">
-                                        <input type="hidden" name="id" value="@proposal.Id" />
-                                        <button type="submit" class="btn btn-success">Express Interest</button>
+                            </div>
+
+                            <!-- Details Modal for Matching Request -->
+                            <div class="modal fade" id="requestModal@(request.RequestId)" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-light">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-file-text"></i> @request.Title
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold mb-2">Abstract</h6>
+                                                <p class="text-justify">@request.Abstract</p>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold mb-2">Technical Stack</h6>
+                                                <p>@request.TechnicalStack</p>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold mb-2">Research Area</h6>
+                                                <p>
+                                                    @if (!string.IsNullOrEmpty(request.ResearchArea))
+                                                    {
+                                                        <span class="badge bg-danger">@request.ResearchArea</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Not Specified</span>
+                                                    }
+                                                </p>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold mb-2">Request Details</h6>
+                                                <ul class="list-unstyled">
+                                                    <li><small><strong>Requested on:</strong>
+                                                        @request.RequestedAt.ToString("MMMM dd, yyyy HH:mm:ss")</small></li>
+                                                        <li><small><strong>Status:</strong> <span
+                                                            class="badge bg-warning">@request.Status</span></small></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="alert alert-warning" role="alert">
+                                                        <i class="bi bi-shield-check me-2"></i>
+                                                        <strong>Privacy Protection:</strong> Student identity is kept anonymous until
+                                                        you accept the request.
+                                                        Once accepted, you can communicate directly with the student.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Close</button>
+                                                    <form asp-action="RejectRequest" asp-controller="Supervisor" method="post"
+                                                          class="d-inline me-2">
+                                                        <input type="hidden" name="requestId" value="@request.RequestId" />
+                                                        <button type="submit" class="btn btn-outline-danger"
+                                                                onclick="return confirm('Are you sure you want to reject this request?');">
+                                                            <i class="bi bi-x-circle me-1"></i> Reject Request
+                                                        </button>
+                                                    </form>
+                                                    <form asp-action="AcceptRequest" asp-controller="Supervisor" method="post"
+                                                          class="d-inline">
+                                                        <input type="hidden" name="requestId" value="@request.RequestId" />
+                                                        <button type="submit" class="btn btn-success" @if (Model.TotalAcceptedRequests
+                                            >= Model.MaxStudentLimit) {
+                                                                <text>disabled</text>
+                                                            }
+                                                                onclick="return confirm('Are you sure you want to accept this request? The
+                                                            student identity will be revealed.');">
+                                                            <i class="bi bi-check-circle me-1"></i> Accept Request
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- My Accepted Matches Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-white">
+                            <i class="bi bi-heart-fill"></i> My Accepted Matches - Identity Revealed
+                            <span class="badge bg-light text-success ms-2">@Model.TotalMatches Active</span>
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> These are your matched proposals with student identities revealed for direct
+                        communication and collaboration.
+                    </p>
+
+                    @if (Model.MatchedProposals == null || !Model.MatchedProposals.Any())
+                    {
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle me-2"></i> You haven't matched with any proposals yet. Start by reviewing
+                            matching requests above.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">
+                                            <i class="bi bi-file-text"></i> Title
+                                        </th>
+                                        <th scope="col">
+                                            <i class="bi bi-person"></i> Student Name
+                                        </th>
+                                        <th scope="col">
+                                            <i class="bi bi-envelope"></i> Email
+                                        </th>
+                                        <th scope="col">
+                                            <i class="bi bi-tag"></i> Research Area
+                                        </th>
+                                        <th scope="col">
+                                            <i class="bi bi-calendar-check"></i> Matched On
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var match in Model.MatchedProposals)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@match.Title</strong>
+                                                <br />
+                                                <small class="text-muted">@(match.Abstract.Length > 80 ? match.Abstract.Substring(0, 80)
+                                                                                        + "..." : match.Abstract)</small>
+                                                </td>
+                                                <td>
+                                                    <strong>@match.StudentName</strong>
+                                                </td>
+                                                <td>
+                                                    <a href="mailto:@match.StudentEmail" class="text-decoration-none">
+                                                        <i class="bi bi-envelope me-1"></i> @match.StudentEmail
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(match.ResearchArea))
+                                                    {
+                                                        <span class="badge bg-success">@match.ResearchArea</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i> @match.MatchedAt?.ToString("MMM dd, yyyy")
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Blind Review Section (Lower Priority) -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-white">
+                                <i class="bi bi-eye-slash"></i> Blind Review - Anonymous Proposals
+                                <span class="badge bg-light text-dark ms-2">@Model.TotalPendingProposals Available</span>
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Note:</strong> Student names and IDs are hidden to ensure unbiased evaluation.
+                            Click "Express Interest" to initiate a match and reveal their identity.
+                        </p>
+
+                        @if (Model.PendingProposals == null || !Model.PendingProposals.Any())
+                        {
+                            <div class="alert alert-info" role="alert">
+                                <i class="bi bi-info-circle me-2"></i> No pending proposals available for blind review at this time.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">
+                                                <i class="bi bi-file-text"></i> Title
+                                            </th>
+                                            <th scope="col">
+                                                <i class="bi bi-tag"></i> Research Area
+                                            </th>
+                                            <th scope="col">
+                                                <i class="bi bi-cpu"></i> Tech Stack
+                                            </th>
+                                            <th scope="col">
+                                                <i class="bi bi-calendar"></i> Posted
+                                            </th>
+                                            <th scope="col" class="text-center" style="width: 180px;">
+                                                <i class="bi bi-sliders"></i> Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var proposal in Model.PendingProposals)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@proposal.Title</strong>
+                                                    <br />
+                                                    <small class="text-muted">
+                                                        @(proposal.Abstract.Length > 100 ? proposal.Abstract.Substring(0, 100) + "..." :
+                                                proposal.Abstract)
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(proposal.ResearchArea))
+                                                    {
+                                                        <span class="badge bg-info">@proposal.ResearchArea</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        @(proposal.TechnicalStack.Length > 50 ? proposal.TechnicalStack.Substring(0, 50) +
+                                               "..." : proposal.TechnicalStack)
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i> @proposal.CreatedAt.ToString("MMM dd, yyyy")
+                                                    </small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal"
+                                                            data-bs-target="#proposalModal@(proposal.ProposalId)" title="View Details">
+                                                        <i class="bi bi-eye me-1"></i> View
+                                                    </button>
+                                                    <form asp-action="MatchProject" asp-controller="Supervisor" method="post"
+                                                          class="d-inline">
+                                                        <input type="hidden" name="id" value="@proposal.ProposalId" />
+                                                        <button type="submit" class="btn btn-sm btn-success"
+                                                                title="Express Interest - This will reveal the student's identity"
+                                                                onclick="return confirm('Are you sure you want to express interest in this proposal? The student identity will be revealed immediately.');">
+                                                            <i class="bi bi-check-lg me-1"></i> Interest
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Details Modal for Anonymous Proposal -->
+                                            <div class="modal fade" id="proposalModal@(proposal.ProposalId)" tabindex="-1"
+                                                 aria-hidden="true">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-light">
+                                                            <h5 class="modal-title">
+                                                                <i class="bi bi-file-text"></i> @proposal.Title
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-4">
+                                                                <h6 class="fw-bold mb-2">Abstract</h6>
+                                                                <p class="text-justify">@proposal.Abstract</p>
+                                                            </div>
+                                                            <div class="mb-4">
+                                                                <h6 class="fw-bold mb-2">Technical Stack</h6>
+                                                                <p>@proposal.TechnicalStack</p>
+                                                            </div>
+                                                            <div class="mb-4">
+                                                                <h6 class="fw-bold mb-2">Research Area</h6>
+                                                                <p>
+                                                                    @if (!string.IsNullOrEmpty(proposal.ResearchArea))
+                                                                    {
+                                                                        <span class="badge bg-info">@proposal.ResearchArea</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge bg-secondary">Not Specified</span>
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            <div class="alert alert-info" role="alert">
+                                                                <i class="bi bi-shield-check me-2"></i>
+                                                                <strong>Privacy Protection:</strong> Student identity is kept anonymous to
+                                                                ensure your evaluation is completely objective and unbiased.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Close</button>
+                                                            <form asp-action="MatchProject" asp-controller="Supervisor" method="post"
+                                                                  class="d-inline">
+                                                                <input type="hidden" name="id" value="@proposal.ProposalId" />
+                                                                <button type="submit" class="btn btn-success"
+                                                                        onclick="return confirm('Are you sure you want to express interest in this proposal? The student identity will be revealed immediately.');">
+                                                                    <i class="bi bi-check-lg me-1"></i> Express Interest
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script>
+                    // Auto-hide alerts after 5 seconds
+                    document.addEventListener('DOMContentLoaded', function () {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(function (alert) {
+                    setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                    }, 5000);
+                    });
+                    });
+                </script>
+            }
+</div>
+</div>
+
+<!-- My Accepted Matches Section -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white">
+                <i class="bi bi-heart-fill"></i> My Accepted Matches - Identity Revealed
+                <span class="badge bg-light text-success ms-2">@Model.TotalMatches Active</span>
+            </h5>
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> These are your matched proposals with student identities revealed for direct
+            communication and collaboration.
+        </p>
+
+        @if (Model.MatchedProposals == null || !Model.MatchedProposals.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle me-2"></i> You haven't matched with any proposals yet. Start by reviewing
+                matching requests above.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">
+                                <i class="bi bi-file-text"></i> Title
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-person"></i> Student Name
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-envelope"></i> Email
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-tag"></i> Research Area
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-calendar-check"></i> Matched On
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in Model.MatchedProposals)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@match.Title</strong>
+                                    <br />
+                                    <small class="text-muted">@(match.Abstract.Length > 80 ? match.Abstract.Substring(0, 80) +
+                                                               "..." : match.Abstract)</small>
+                                    </td>
+                                    <td>
+                                        <strong>@match.StudentName</strong>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:@match.StudentEmail" class="text-decoration-none">
+                                            <i class="bi bi-envelope me-1"></i> @match.StudentEmail
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(match.ResearchArea))
+                                        {
+                                            <span class="badge bg-success">@match.ResearchArea</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i> @match.MatchedAt?.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Blind Review Section (Lower Priority) -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">
+                    <i class="bi bi-eye-slash"></i> Blind Review - Anonymous Proposals
+                    <span class="badge bg-light text-dark ms-2">@Model.TotalPendingProposals Available</span>
+                </h5>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Note:</strong> Student names and IDs are hidden to ensure unbiased evaluation.
+                Click "Express Interest" to initiate a match and reveal their identity.
+            </p>
+
+            @if (Model.PendingProposals == null || !Model.PendingProposals.Any())
+            {
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle me-2"></i> No pending proposals available for blind review at this time.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">
+                                    <i class="bi bi-file-text"></i> Title
+                                </th>
+                                <th scope="col">
+                                    <i class="bi bi-tag"></i> Research Area
+                                </th>
+                                <th scope="col">
+                                    <i class="bi bi-cpu"></i> Tech Stack
+                                </th>
+                                <th scope="col">
+                                    <i class="bi bi-calendar"></i> Posted
+                                </th>
+                                <th scope="col" class="text-center" style="width: 180px;">
+                                    <i class="bi bi-sliders"></i> Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var proposal in Model.PendingProposals)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@proposal.Title</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @(proposal.Abstract.Length > 100 ? proposal.Abstract.Substring(0, 100) + "..." :
+                                proposal.Abstract)
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(proposal.ResearchArea))
+                                        {
+                                            <span class="badge bg-info">@proposal.ResearchArea</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @(proposal.TechnicalStack.Length > 50 ? proposal.TechnicalStack.Substring(0, 50) + "..." : proposal.TechnicalStack)
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i> @proposal.CreatedAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal"
+                                                data-bs-target="#proposalModal@(proposal.ProposalId)" title="View Details">
+                                            <i class="bi bi-eye me-1"></i> View
+                                        </button>
+                                        <form asp-action="MatchProject" asp-controller="Supervisor" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@proposal.ProposalId" />
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                    title="Express Interest - This will reveal the student's identity"
+                                                    onclick="return confirm('Are you sure you want to express interest in this proposal? The student identity will be revealed immediately.');">
+                                                <i class="bi bi-check-lg me-1"></i> Interest
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+
+                                <!-- Details Modal for Anonymous Proposal -->
+                                <div class="modal fade" id="proposalModal@(proposal.ProposalId)" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-light">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-file-text"></i> @proposal.Title
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold mb-2">Abstract</h6>
+                                                    <p class="text-justify">@proposal.Abstract</p>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold mb-2">Technical Stack</h6>
+                                                    <p>@proposal.TechnicalStack</p>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold mb-2">Research Area</h6>
+                                                    <p>
+                                                        @if (!string.IsNullOrEmpty(proposal.ResearchArea))
+                                                        {
+                                                            <span class="badge bg-info">@proposal.ResearchArea</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">Not Specified</span>
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div class="alert alert-info" role="alert">
+                                                    <i class="bi bi-shield-check me-2"></i>
+                                                    <strong>Privacy Protection:</strong> Student identity is kept anonymous to
+                                                    ensure your evaluation is completely objective and unbiased.
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Close</button>
+                                                <form asp-action="MatchProject" asp-controller="Supervisor" method="post"
+                                                      class="d-inline">
+                                                    <input type="hidden" name="id" value="@proposal.ProposalId" />
+                                                    <button type="submit" class="btn btn-success"
+                                                            onclick="return confirm('Are you sure you want to express interest in this proposal? The student identity will be revealed immediately.');">
+                                                        <i class="bi bi-check-lg me-1"></i> Express Interest
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function () {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+        setTimeout(function () {
+        const bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+        }, 5000);
+        });
+        });
+    </script>
+}
+}
+else
+{
+<div class="row">
+    @foreach (var request in Model.MatchingRequests)
+    {
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-file-text"></i> @request.Title
+                    </h6>
+                    <small class="text-muted">Requested on @request.RequestedAt.ToString("MMM dd, yyyy")</small>
+                </div>
+                <div class="card-body">
+                    <p><strong>Abstract:</strong></p>
+                    <p class="text-muted small">@(request.Abstract.Length > 150 ? request.Abstract.Substring(0,
+                                                                                                                                                        150) + "..." : request.Abstract)</p>
+                                    
+                        <p><strong>Technical Stack:</strong></p>
+                        <p class="text-muted small">@(request.TechnicalStack.Length > 100 ?
+                                                                                                                                                                    request.TechnicalStack.Substring(0, 100) + "..." : request.TechnicalStack)</p>
+                                    
+                            @if (!string.IsNullOrEmpty(request.ResearchArea))
+                            {
+                                <div class="mt-2">
+                                    <span class="badge bg-info">@request.ResearchArea</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#requestModal@(request.RequestId)" title="View Full Details">
+                                    <i class="bi bi-eye"></i> View Details
+                                </button>
+                                <div>
+                                    <form asp-action="RejectRequest" asp-controller="Supervisor" method="post"
+                                          class="d-inline me-2">
+                                        <input type="hidden" name="requestId" value="@request.RequestId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject Request"
+                                                onclick="return confirm('Are you sure you want to reject this request?');">
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                    </form>
+                                    <form asp-action="AcceptRequest" asp-controller="Supervisor" method="post" class="d-inline">
+                                        <input type="hidden" name="requestId" value="@request.RequestId" />
+                                        <button type="submit" class="btn btn-sm btn-success" title="Accept Request"
+                                                onclick="return confirm('Are you sure you want to accept this request? The student identity will be revealed.');">
+                                            <i class="bi bi-check-circle"></i> Accept
+                                        </button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Details Modal for Matching Request -->
+                <div class="modal fade" id="requestModal@(request.RequestId)" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-file-text"></i> @request.Title
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Abstract</h6>
+                                    <p class="text-justify">@request.Abstract</p>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Technical Stack</h6>
+                                    <p>@request.TechnicalStack</p>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-2">Research Area</h6>
+                                    <p>
+                                        @if (!string.IsNullOrEmpty(request.ResearchArea))
+                                        {
+                                            <span class="badge bg-info">@request.ResearchArea</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not Specified</span>
+                                        }
+                                    </p>
+                                </div>
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="bi bi-shield-check"></i>
+                                    <strong>Privacy Protection:</strong> Student identity is kept anonymous until you
+                                    accept the request.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <form asp-action="RejectRequest" asp-controller="Supervisor" method="post" class="d-inline me-2">
+                                    <input type="hidden" name="requestId" value="@request.RequestId" />
+                                    <button type="submit" class="btn btn-outline-danger"
+                                            onclick="return confirm('Are you sure you want to reject this request?');">
+                                        <i class="bi bi-x-circle"></i> Reject
+                                    </button>
+                                </form>
+                                <form asp-action="AcceptRequest" asp-controller="Supervisor" method="post" class="d-inline">
+                                    <input type="hidden" name="requestId" value="@request.RequestId" />
+                                    <button type="submit" class="btn btn-success"
+                                            onclick="return confirm('Are you sure you want to accept this request? The student identity will be revealed.');">
+                                        <i class="bi bi-check-circle"></i> Accept
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </div>
-    }
+        }
+    </div>
+</div>
+
+<!-- My Matches Section -->
+<div class="card shadow-sm">
+    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <h5 class="mb-0 text-white">
+            <i class="bi bi-heart-fill"></i> My Matches - Identity Revealed
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            <strong>Note:</strong> These are your matched proposals with student identities revealed for direct
+            communication.
+        </p>
+
+        @if (Model.MatchedProposals == null || !Model.MatchedProposals.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> You haven't matched with any proposals yet. Start by reviewing pending
+                proposals above.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">
+                                <i class="bi bi-file-text"></i> Title
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-person"></i> Student Name
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-envelope"></i> Email
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-tag"></i> Research Area
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-calendar-check"></i> Matched On
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in Model.MatchedProposals)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@match.Title</strong>
+                                    <br />
+                                    <small class="text-muted">@(match.Abstract.Length > 100 ? match.Abstract.Substring(0,
+                                                                                                                                                                                                    100) + "..." : match.Abstract)</small>
+                                    </td>
+                                    <td>
+                                        <strong>@match.StudentName</strong>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:@match.StudentEmail">@match.StudentEmail</a>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(match.ResearchArea))
+                                        {
+                                            <span class="badge bg-success">@match.ResearchArea</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@match.MatchedAt?.ToString("MMM dd, yyyy")</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @section Scripts {

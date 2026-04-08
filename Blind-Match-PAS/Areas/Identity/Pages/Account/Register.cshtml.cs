@@ -133,20 +133,41 @@ namespace Blind_Match_PAS.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Ensure roles exist
+                    // Ensure the Student and Supervisor roles exist
                     if (!await _roleManager.RoleExistsAsync("Student"))
                     {
-                        await _roleManager.CreateAsync(new IdentityRole("Student"));
+                        var studentRoleResult = await _roleManager.CreateAsync(new IdentityRole("Student"));
+                        if (!studentRoleResult.Succeeded)
+                        {
+                            _logger.LogError("Failed to create Student role: {Errors}", string.Join(", ", studentRoleResult.Errors.Select(e => e.Description)));
+                        }
                     }
                     if (!await _roleManager.RoleExistsAsync("Supervisor"))
                     {
-                        await _roleManager.CreateAsync(new IdentityRole("Supervisor"));
+                        var supervisorRoleResult = await _roleManager.CreateAsync(new IdentityRole("Supervisor"));
+                        if (!supervisorRoleResult.Succeeded)
+                        {
+                            _logger.LogError("Failed to create Supervisor role: {Errors}", string.Join(", ", supervisorRoleResult.Errors.Select(e => e.Description)));
+                        }
                     }
 
-                    // Assign Student role if email matches
-                    if (Input.Email == "student1@test.com")
+                    // Wrap Student role assignment in a check to ensure the role exists before adding the user
+                    if (await _roleManager.RoleExistsAsync("Student"))
                     {
-                        await _userManager.AddToRoleAsync(user, "Student");
+                        var roleAssignmentResult = await _userManager.AddToRoleAsync(user, "Student");
+                        if (!roleAssignmentResult.Succeeded)
+                        {
+                            _logger.LogError("Failed to assign Student role to user {UserId}: {Errors}", user.Id, string.Join(", ", roleAssignmentResult.Errors.Select(e => e.Description)));
+                            ModelState.AddModelError(string.Empty, "Failed to assign Student role to your account. Please contact support.");
+                            return Page();
+                        }
+                        _logger.LogInformation("Successfully assigned Student role to user {UserId}", user.Id);
+                    }
+                    else
+                    {
+                        _logger.LogError("Student role does not exist in the database for user {UserId}", user.Id);
+                        ModelState.AddModelError(string.Empty, "System error: Student role not available. Please contact support.");
+                        return Page();
                     }
 
                     var userId = await _userManager.GetUserIdAsync(user);
