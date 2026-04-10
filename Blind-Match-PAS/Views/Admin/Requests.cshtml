@@ -1,4 +1,4 @@
-y@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
+@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
 
 @{
     ViewData["Title"] = "Request Monitoring";
@@ -18,7 +18,7 @@ y@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted">Pending</h6>
-                    <h3 class="mb-0">@Model.Count(r => r.Status == "Pending")</h3>
+                    <h3 class="mb-0">@(Model?.Count(r => r.Status == "Pending") ?? 0)</h3>
                 </div>
             </div>
         </div>
@@ -26,7 +26,7 @@ y@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted">Accepted</h6>
-                    <h3 class="mb-0">@Model.Count(r => r.Status == "Accepted")</h3>
+                    <h3 class="mb-0">@(Model?.Count(r => r.Status == "Accepted") ?? 0)</h3>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@ y@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted">Rejected</h6>
-                    <h3 class="mb-0">@Model.Count(r => r.Status == "Rejected")</h3>
+                    <h3 class="mb-0">@(Model?.Count(r => r.Status == "Rejected") ?? 0)</h3>
                 </div>
             </div>
         </div>
@@ -56,21 +56,29 @@ y@model IEnumerable<Blind_Match_PAS.Models.RequestMonitorDto>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var request in Model)
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var request in Model)
+                            {
+                                <tr>
+                                    <td>@request.Id</td>
+                                    <td>@request.ProposalTitle</td>
+                                    <td>@request.StudentName</td>
+                                    <td>@request.SupervisorName</td>
+                                    <td>
+                                        <span class="badge @(request.Status == "Pending" ? "bg-warning text-dark" : request.Status == "Accepted" ? "bg-success" : "bg-danger")">
+                                            @request.Status
+                                        </span>
+                                    </td>
+                                    <td>@request.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td>@(request.UpdatedAt?.ToString("yyyy-MM-dd") ?? "—")</td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@request.Id</td>
-                                <td>@request.ProposalTitle</td>
-                                <td>@request.StudentName</td>
-                                <td>@request.SupervisorName</td>
-                                <td>
-                                    <span
-                                        class="badge @(request.Status == "Pending" ? "bg-warning text-dark" : request.Status == "Accepted" ? "bg-success" : "bg-danger")">
-                                        @request.Status
-                                    </span>
-                                </td>
-                                <td>@request.CreatedAt.ToString("yyyy-MM-dd")</td>
-                                <td>@(request.UpdatedAt?.ToString("yyyy-MM-dd") ?? "—")</td>
+                                <td colspan="7" class="text-center">No requests found.</td>
                             </tr>
                         }
                     </tbody>
