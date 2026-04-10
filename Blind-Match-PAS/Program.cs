@@ -14,12 +14,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // 2. Register DbContexts: Links your contexts to SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString)
-           .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddDbContext<CustomDbContext>(options =>
-    options.UseSqlServer(connectionString)
-           .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+    options.UseSqlServer(connectionString));
 
 // 3. Identity Setup: Uses the built-in IdentityUser for authentication with Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)

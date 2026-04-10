@@ -1,4 +1,4 @@
-@model IEnumerable<Blind_Match_PAS.Models.ProjectProposal>
+@model IEnumerable<Blind_Match_PAS.Models.StudentProjectProposalViewModel>
 
 @{
     ViewData["Title"] = "Student Dashboard";
@@ -7,6 +7,15 @@
 <h1>Student Dashboard</h1>
 
 <p>Welcome to your dashboard. Here you can view your submitted project proposals.</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+else if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
 @if (Model.Any())
 {
@@ -18,6 +27,8 @@
                 <th>Technical Stack</th>
                 <th>Research Area</th>
                 <th>Status</th>
+                <th>Supervisor</th>
+                <th>Contact</th>
                 <th>Submitted At</th>
                 <th>Actions</th>
             </tr>
@@ -29,9 +40,29 @@
                     <td>@proposal.Title</td>
                     <td>@proposal.Abstract</td>
                     <td>@proposal.TechnicalStack</td>
-                    <td>@proposal.ResearchArea?.Name</td>
+                    <td>@proposal.ResearchAreaName</td>
                     <td>
                         <span class="badge badge-info">@proposal.Status</span>
+                    </td>
+                    <td>
+                        @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched && !string.IsNullOrEmpty(proposal.SupervisorName))
+                        {
+                            @proposal.SupervisorName
+                        }
+                        else
+                        {
+                            <em>Hidden until match</em>
+                        }
+                    </td>
+                    <td>
+                        @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Matched && !string.IsNullOrEmpty(proposal.SupervisorEmail))
+                        {
+                            @proposal.SupervisorEmail
+                        }
+                        else
+                        {
+                            <em>Hidden until match</em>
+                        }
                     </td>
                     <td>@proposal.CreatedAt.ToString("g")</td>
                     <td>
@@ -39,6 +70,17 @@
                                class="btn btn-sm btn-primary">
                             Find Matches
                         </a>
+                        @if (proposal.Status == Blind_Match_PAS.Models.ProjectStatus.Pending)
+                        {
+                            <a asp-controller="Student" asp-action="EditProposal" asp-route-id="@proposal.Id" class="btn btn-sm btn-secondary">
+                                Edit
+                            </a>
+                            <form asp-action="WithdrawProposal" asp-controller="Student" asp-route-id="@proposal.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to withdraw this proposal?');">
+                                    Withdraw
+                                </button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }

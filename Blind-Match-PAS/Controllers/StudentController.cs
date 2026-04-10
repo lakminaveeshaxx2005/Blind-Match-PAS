@@ -40,7 +40,37 @@ namespace Blind_Match_PAS.Controllers
                 .Include(p => p.ResearchArea)
                 .ToListAsync();
 
-            return View(proposals);
+            var matchedSupervisorIds = proposals
+                .Where(p => p.Status == ProjectStatus.Matched && p.IsIdentityRevealed && !string.IsNullOrEmpty(p.SupervisorId))
+                .Select(p => p.SupervisorId!)
+                .Distinct()
+                .ToList();
+
+            var supervisors = await _applicationContext.Users
+                .Where(u => matchedSupervisorIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var dashboardModels = proposals.Select(p => new StudentProjectProposalViewModel
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Abstract = p.Abstract,
+                TechnicalStack = p.TechnicalStack,
+                ResearchAreaName = p.ResearchArea?.Name,
+                Status = p.Status,
+                SupervisorId = p.SupervisorId,
+                SupervisorName = p.Status == ProjectStatus.Matched && p.IsIdentityRevealed && !string.IsNullOrEmpty(p.SupervisorId)
+                    ? supervisors.GetValueOrDefault(p.SupervisorId!)?.FullName
+                    : null,
+                SupervisorEmail = p.Status == ProjectStatus.Matched && p.IsIdentityRevealed && !string.IsNullOrEmpty(p.SupervisorId)
+                    ? supervisors.GetValueOrDefault(p.SupervisorId!)?.Email
+                    : null,
+                CreatedAt = p.CreatedAt,
+                MatchedAt = p.MatchedAt,
+                LastModifiedAt = p.LastModifiedAt
+            }).ToList();
+
+            return View(dashboardModels);
         }
 
         /// <summary>
@@ -176,6 +206,110 @@ namespace Blind_Match_PAS.Controllers
 
             ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View(model);
+        }
+
+        // GET: Student/EditProposal/5
+        [HttpGet]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> EditProposal(int id)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return Unauthorized();
+            }
+
+            var proposal = await _context.ProjectProposals.FindAsync(id);
+            if (proposal == null || proposal.StudentId != studentId)
+            {
+                return NotFound();
+            }
+
+            if (proposal.Status != ProjectStatus.Pending || !string.IsNullOrEmpty(proposal.SupervisorId))
+            {
+                TempData["ErrorMessage"] = "Only proposals that have not been matched can be edited.";
+                return RedirectToAction("Dashboard");
+            }
+
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name", proposal.ResearchAreaId);
+            return View(proposal);
+        }
+
+        // POST: Student/EditProposal/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> EditProposal(ProjectProposal model)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return Unauthorized();
+            }
+
+            var proposal = await _context.ProjectProposals.FindAsync(model.Id);
+            if (proposal == null || proposal.StudentId != studentId)
+            {
+                return NotFound();
+            }
+
+            if (proposal.Status != ProjectStatus.Pending || !string.IsNullOrEmpty(proposal.SupervisorId))
+            {
+                TempData["ErrorMessage"] = "Only proposals that have not been matched can be edited.";
+                return RedirectToAction("Dashboard");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name", model.ResearchAreaId);
+                return View(model);
+            }
+
+            proposal.Title = model.Title;
+            proposal.Abstract = model.Abstract;
+            proposal.TechnicalStack = model.TechnicalStack;
+            proposal.ResearchAreaId = model.ResearchAreaId;
+            proposal.LastModifiedAt = DateTime.UtcNow;
+
+            _context.ProjectProposals.Update(proposal);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Proposal updated successfully.";
+            return RedirectToAction("Dashboard");
+        }
+
+        // POST: Student/WithdrawProposal/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> WithdrawProposal(int id)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return Unauthorized();
+            }
+
+            var proposal = await _context.ProjectProposals.FindAsync(id);
+            if (proposal == null || proposal.StudentId != studentId)
+            {
+                return NotFound();
+            }
+
+            if (proposal.Status != ProjectStatus.Pending || !string.IsNullOrEmpty(proposal.SupervisorId))
+            {
+                TempData["ErrorMessage"] = "Only proposals that have not been matched can be withdrawn.";
+                return RedirectToAction("Dashboard");
+            }
+
+            var requests = _applicationContext.MatchingRequests.Where(r => r.ProposalId == id);
+            _applicationContext.MatchingRequests.RemoveRange(requests);
+            _context.ProjectProposals.Remove(proposal);
+            await _applicationContext.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Proposal withdrawn successfully.";
+            return RedirectToAction("Dashboard");
         }
 
         // 4. GET: Create Project
