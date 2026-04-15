@@ -590,6 +590,33 @@ namespace Blind_Match_PAS.Controllers
                 return Forbid();
             }
 
+            // Only reveal user identity when the proposal is matched (or identity flag set),
+            // otherwise keep student/supervisor details hidden.
+            string? studentName = null;
+            string? studentEmail = null;
+            string? supervisorName = null;
+            string? supervisorEmail = null;
+
+            if (proposal.Status == ProjectStatus.Matched || proposal.IsIdentityRevealed || proposal.SupervisorId == currentSupervisorId)
+            {
+                // reveal identities for matched proposals or when identity flag is set
+                var student = await _applicationContext.Users.FindAsync(proposal.StudentId);
+                studentName = student?.FullName;
+                studentEmail = student?.Email;
+
+                if (!string.IsNullOrEmpty(proposal.SupervisorId))
+                {
+                    var supervisor = await _applicationContext.Users.FindAsync(proposal.SupervisorId);
+                    supervisorName = supervisor?.FullName;
+                    supervisorEmail = supervisor?.Email;
+                }
+            }
+
+            ViewBag.StudentName = studentName;
+            ViewBag.StudentEmail = studentEmail;
+            ViewBag.SupervisorName = supervisorName;
+            ViewBag.SupervisorEmail = supervisorEmail;
+
             return View(proposal);
         }
 

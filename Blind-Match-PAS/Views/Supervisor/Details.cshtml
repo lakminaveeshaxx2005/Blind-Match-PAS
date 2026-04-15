@@ -46,11 +46,17 @@
                     <p>Student and supervisor identities are now visible.</p>
                 </div>
                 <dl class="row">
-                    <dt class="col-sm-3">Student ID</dt>
-                    <dd class="col-sm-9">@Model.StudentId</dd>
+                    <dt class="col-sm-3">Student</dt>
+                    <dd class="col-sm-9">@((ViewBag.StudentName as string) ?? Model.StudentId)</dd>
 
-                    <dt class="col-sm-3">Supervisor ID</dt>
-                    <dd class="col-sm-9">@Model.SupervisorId</dd>
+                    <dt class="col-sm-3">Student Email</dt>
+                    <dd class="col-sm-9">@((ViewBag.StudentEmail as string) ?? "N/A")</dd>
+
+                    <dt class="col-sm-3">Supervisor</dt>
+                    <dd class="col-sm-9">@((ViewBag.SupervisorName as string) ?? Model.SupervisorId ?? "N/A")</dd>
+
+                    <dt class="col-sm-3">Supervisor Email</dt>
+                    <dd class="col-sm-9">@((ViewBag.SupervisorEmail as string) ?? "N/A")</dd>
                 </dl>
             }
             else
