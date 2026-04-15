@@ -734,5 +734,29 @@ namespace Blind_Match_PAS.Controllers
 
             return View(viewModel);
         }
+
+        // GET: Supervisor/AvailableProjects
+        [HttpGet]
+        [Authorize(Roles = "Supervisor")]
+        public async Task<IActionResult> AvailableProjects()
+        {
+            // Return a lightweight summary of pending proposals for supervisors to browse
+            var projects = await _customContext.ProjectProposals
+                .AsNoTracking()
+                .Where(p => p.Status == ProjectStatus.Pending)
+                .Include(p => p.ResearchArea)
+                .Select(p => new Models.ProjectSummaryViewModel
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Abstract = p.Abstract,
+                    TechStack = p.TechnicalStack,
+                    ResearchArea = p.ResearchArea != null ? p.ResearchArea.Name : null,
+                    Status = p.Status.ToString()
+                })
+                .ToListAsync();
+
+            return View(projects);
+        }
     }
 }

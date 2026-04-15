@@ -29,3 +29,104 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Theme variables */
+:root {
+  --brand-500: #2563eb; /* blue */
+  --brand-600: #1e40af;
+  --accent-500: #06b6d4; /* teal */
+  --muted-600: #6b7280;
+  --surface: #f8fafc;
+  --card-border: rgba(37,99,235,0.08);
+}
+
+/* Navbar */
+.app-navbar {
+  background: linear-gradient(90deg, var(--brand-500), var(--brand-600));
+}
+.app-navbar .navbar-brand,
+.app-navbar .nav-link {
+  color: #fff !important;
+}
+.app-navbar .nav-link:hover {
+  color: #e0f2fe !important;
+}
+
+/* Cards */
+.card {
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+}
+.card-header {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-bottom: 1px solid var(--card-border);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--brand-500);
+  border-color: var(--brand-600);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--brand-600);
+  border-color: var(--brand-600);
+}
+.btn-outline-primary {
+  color: var(--brand-600);
+  border-color: rgba(37,99,235,0.25);
+}
+.btn-outline-primary:hover {
+  background-color: rgba(37,99,235,0.06);
+}
+
+/* Tables */
+.table thead th {
+  border-bottom: 2px solid rgba(0,0,0,0.05);
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(6,182,212,0.03);
+}
+
+/* Badges */
+.badge-custom {
+  background: linear-gradient(90deg, var(--accent-500), var(--brand-500));
+  color: #fff;
+  padding: 0.35em 0.6em;
+  border-radius: 0.5rem;
+}
+
+/* Alerts */
+.alert-info {
+  background-color: #ecfeff;
+  color: var(--muted-600);
+  border: 1px solid rgba(6,182,212,0.15);
+}
+.alert-success {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid rgba(16,185,129,0.12);
+}
+
+/* Footer */
+.footer {
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), transparent);
+  padding: 1rem 0;
+}
+
+/* Small helpers */
+.muted-small {
+  color: var(--muted-600);
+  font-size: 0.9rem;
+}
+
+/* Improve form inputs */
+.form-control {
+  border-radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #0b1220;
+  }
+}

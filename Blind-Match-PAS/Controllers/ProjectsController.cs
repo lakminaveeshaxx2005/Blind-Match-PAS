@@ -24,6 +24,25 @@ namespace Blind_Match_PAS.Controllers
             return View(projects);
         }
 
+        // GET: Projects/MyProjects
+        // Shows only the projects belonging to the currently logged-in student
+        [HttpGet]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> MyProjects()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var projects = await _context.Projects
+                .Where(p => p.StudentId == userId)
+                .ToListAsync();
+
+            return View(projects);
+        }
+
         // GET: Projects/Details/5
         public async Task<IActionResult> Details(int? id)
         {

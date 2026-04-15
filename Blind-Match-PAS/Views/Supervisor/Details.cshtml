@@ -32,10 +32,7 @@
 
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">
-                    <span
-                        class="badge @(Model.Status == ProjectStatus.Matched ? "bg-success" : Model.Status == ProjectStatus.Interested ? "bg-primary" : "bg-warning")">
-                        @Model.Status
-                    </span>
+                    <span class="badge-custom">@Model.Status</span>
                 </dd>
             </dl>
 

@@ -1,19 +1,19 @@
 @model IEnumerable<Blind_Match_PAS.Models.Project>
 @using System.Security.Claims
 @{
-    ViewData["Title"] = "Projects";
+    ViewData["Title"] = "My Projects";
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Projects</h1>
+        <h1>My Projects</h1>
         <a asp-action="Create" class="btn btn-primary">Create Project</a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">No projects are available yet.</div>
+        <div class="alert alert-info">You haven't created any projects yet.</div>
     }
     else
     {
@@ -25,13 +25,14 @@
                         <div class="card-header d-flex justify-content-between align-items-start">
                             <div>
                                 <h5 class="card-title mb-0">@item.Title</h5>
-                                <small class="muted-small">Project #@item.Id</small>
+                                <small class="muted-small">Proposal #@item.Id</small>
                             </div>
-                            <span class="badge-custom">@item.TechStack?.Split(',').FirstOrDefault()</span>
+                            <span class="badge-custom">@item.StudentId</span>
                         </div>
                         <div class="card-body">
                             <p class="card-text">@item.Abstract</p>
-                            <p class="mb-0"><strong>Research Area:</strong> @item.ResearchArea</p>
+                            <p class="mb-1"><strong>Tech:</strong> @item.TechStack</p>
+                            <p class="mb-0"><strong>Area:</strong> @item.ResearchArea</p>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
                             <div>
