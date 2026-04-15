@@ -68,11 +68,7 @@ namespace Blind_Match_PAS.Authorization
             var supervisorId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             // Store supervisor ID for controller-level validation
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext != null)
-            {
-                httpContext.Items["SupervisorId"] = supervisorId;
-            }
+            _httpContextAccessor.HttpContext?.Items["SupervisorId"] = supervisorId;
 
             context.Succeed(requirement);
             return Task.CompletedTask;
