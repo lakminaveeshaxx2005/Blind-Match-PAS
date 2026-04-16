@@ -67,6 +67,24 @@ namespace Blind_Match_PAS.Services
                 .Where(u => u.UserRole == "Supervisor")
                 .ToListAsync();
 
+            // If the proposal has a research area, prefer supervisors whose Expertise includes that area.
+            var researchAreaName = proposal.ResearchArea?.Name?.Trim();
+            if (!string.IsNullOrEmpty(researchAreaName))
+            {
+                var normalizedArea = researchAreaName.ToLower();
+                var matchingByArea = supervisors.Where(s => !string.IsNullOrEmpty(s.Expertise) &&
+                    s.Expertise.ToLower().Split(new[] { ',', ' ', ';', '.', '-', '&', '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries)
+                        .Select(k => k.Trim())
+                        .Any(k => k.Contains(normalizedArea) || normalizedArea.Contains(k))).ToList();
+
+                // If we found supervisors whose expertise explicitly includes the research area, narrow the list to them.
+                if (matchingByArea.Any())
+                {
+                    supervisors = matchingByArea;
+                    Console.WriteLine($"DEBUG: Filtered supervisors to {supervisors.Count} matching research area '{researchAreaName}'");
+                }
+            }
+
             var matches = new List<SupervisorMatch>();
 
             foreach (var supervisor in supervisors)
