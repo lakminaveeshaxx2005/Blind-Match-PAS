@@ -91,21 +91,18 @@ namespace Blind_Match_PAS.Controllers
         }
 
         // GET: Projects/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects.FindAsync(id.Value);
+            var project = await _context.Projects.FindAsync(id);
             if (project == null)
             {
                 return NotFound();
             }
 
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(project.StudentId) && project.StudentId != studentId)
+            if (string.IsNullOrEmpty(studentId) || project.StudentId != studentId)
             {
                 return Forbid();
             }
@@ -113,19 +110,15 @@ namespace Blind_Match_PAS.Controllers
             return View(project);
         }
 
-        // POST: Projects/Edit/5
+        // POST: Projects/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> Edit(int id, Project project)
         {
             if (id != project.Id)
             {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(project);
+                return BadRequest();
             }
 
             var existingProject = await _context.Projects.FindAsync(id);
@@ -135,11 +128,17 @@ namespace Blind_Match_PAS.Controllers
             }
 
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(existingProject.StudentId) && existingProject.StudentId != studentId)
+            if (string.IsNullOrEmpty(studentId) || existingProject.StudentId != studentId)
             {
                 return Forbid();
             }
 
+            if (!ModelState.IsValid)
+            {
+                return View(project);
+            }
+
+            // Update allowed fields only
             existingProject.Title = project.Title;
             existingProject.Abstract = project.Abstract;
             existingProject.TechStack = project.TechStack;
@@ -159,7 +158,7 @@ namespace Blind_Match_PAS.Controllers
                 throw;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("MyProjects");
         }
 
         // GET: Projects/Delete/5
