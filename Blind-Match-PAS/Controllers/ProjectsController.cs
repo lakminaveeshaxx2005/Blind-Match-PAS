@@ -161,23 +161,19 @@ namespace Blind_Match_PAS.Controllers
             return RedirectToAction("MyProjects");
         }
 
-        // GET: Projects/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // GET: Projects/Delete/5 (Withdraw)
+        [HttpGet]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(m => m.Id == id.Value);
+            var project = await _context.Projects.FindAsync(id);
             if (project == null)
             {
                 return NotFound();
             }
 
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(project.StudentId) && project.StudentId != studentId)
+            if (string.IsNullOrEmpty(studentId) || project.StudentId != studentId)
             {
                 return Forbid();
             }
@@ -185,9 +181,10 @@ namespace Blind_Match_PAS.Controllers
             return View(project);
         }
 
-        // POST: Projects/Delete/5
+        // POST: Projects/Delete/5 (Withdraw)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var project = await _context.Projects.FindAsync(id);
@@ -197,14 +194,14 @@ namespace Blind_Match_PAS.Controllers
             }
 
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(project.StudentId) && project.StudentId != studentId)
+            if (string.IsNullOrEmpty(studentId) || project.StudentId != studentId)
             {
                 return Forbid();
             }
 
             _context.Projects.Remove(project);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("MyProjects");
         }
 
         private bool ProjectExists(int id)
