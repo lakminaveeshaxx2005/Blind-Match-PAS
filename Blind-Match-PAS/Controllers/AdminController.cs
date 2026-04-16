@@ -524,6 +524,26 @@ namespace Blind_Match_PAS.Controllers
             return View("ManageAllocations", matches);
         }
 
+        // GET: Admin/AllMatches
+        // Alternative view that lists all matched proposals with student/supervisor details
+        public async Task<IActionResult> AllMatches()
+        {
+            var matches = await _customContext.ProjectProposals
+                .Where(p => p.Status == ProjectStatus.Matched)
+                .Include(p => p.ResearchArea)
+                .ToListAsync();
+
+            // Fetch all student and supervisor names to display
+            var allUsers = await _userManager.Users.ToListAsync();
+            var nameMap = allUsers.ToDictionary(u => u.Id, u => u.FullName);
+
+            ViewBag.StudentNameMap = nameMap;
+            ViewBag.SupervisorNameMap = nameMap;
+            ViewBag.MatchedCount = matches.Count;
+
+            return View("Matches", matches);
+        }
+
         // POST: Admin/Matches/Reassign
         [HttpPost]
         [ValidateAntiForgeryToken]

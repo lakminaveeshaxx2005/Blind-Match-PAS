@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Blind_Match_PAS.Data;
 using Blind_Match_PAS.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using Blind_Match_PAS.Repositories;
 using Blind_Match_PAS.Services;
 
@@ -21,13 +22,15 @@ namespace Blind_Match_PAS.Controllers
         private readonly ApplicationDbContext _applicationContext;
         private readonly IMatchingRequestRepository _matchingRequestRepository;
         private readonly IMatchingService _matchingService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SupervisorController(CustomDbContext customContext, ApplicationDbContext applicationContext, IMatchingRequestRepository matchingRequestRepository, IMatchingService matchingService)
+        public SupervisorController(CustomDbContext customContext, ApplicationDbContext applicationContext, IMatchingRequestRepository matchingRequestRepository, IMatchingService matchingService, UserManager<ApplicationUser> userManager)
         {
             _customContext = customContext;
             _applicationContext = applicationContext;
             _matchingRequestRepository = matchingRequestRepository;
             _matchingService = matchingService;
+            _userManager = userManager;
         }
 
         private async Task AddMatchRecordAsync(ProjectProposal proposal)
@@ -66,7 +69,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> Index()
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -200,7 +203,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> EditProfile()
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -258,7 +261,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> MatchProject(int id)
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -309,7 +312,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> AcceptRequest(int requestId)
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");

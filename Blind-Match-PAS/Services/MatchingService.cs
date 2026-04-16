@@ -172,6 +172,15 @@ namespace Blind_Match_PAS.Services
             Console.WriteLine($"DEBUG: Final score: {score}");
             return score;
         }
+
+        // Added overload to calculate match score based on a Project's research area
+        public double CalculateMatchScore(Project project, string expertise)
+        {
+            if (project == null || expertise == null)
+                return 0;
+
+            return project.ResearchArea == expertise ? 1 : 0;
+        }
     }
 
     public class SupervisorMatch

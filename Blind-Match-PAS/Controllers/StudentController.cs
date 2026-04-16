@@ -7,6 +7,7 @@ using Blind_Match_PAS.Models;
 using Blind_Match_PAS.Services;
 using Blind_Match_PAS.Repositories;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace Blind_Match_PAS.Controllers
 {
@@ -17,19 +18,21 @@ namespace Blind_Match_PAS.Controllers
         private readonly ApplicationDbContext _applicationContext;
         private readonly IMatchingService _matchingService;
         private readonly IMatchingRequestRepository _matchingRequestRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudentController(CustomDbContext context, ApplicationDbContext applicationContext, IMatchingService matchingService, IMatchingRequestRepository matchingRequestRepository)
+        public StudentController(CustomDbContext context, ApplicationDbContext applicationContext, IMatchingService matchingService, IMatchingRequestRepository matchingRequestRepository, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _applicationContext = applicationContext;
             _matchingService = matchingService;
             _matchingRequestRepository = matchingRequestRepository;
+            _userManager = userManager;
         }
 
         // 1. Dashboard: Displays the student's submitted proposals
         public async Task<IActionResult> Dashboard()
         {
-            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var studentId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(studentId))
             {
                 return Unauthorized();
@@ -82,7 +85,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> FindMatches(int proposalId)
         {
-            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var studentId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(studentId))
             {
                 return Unauthorized();
@@ -124,7 +127,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> ApplyToSupervisor(string supervisorId, int proposalId)
         {
-            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var studentId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(studentId))
             {
                 return Unauthorized();
@@ -191,7 +194,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> SubmitProposal(ProjectProposal model)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdString = _userManager.GetUserId(User);
 
             if (userIdString != null)
             {
@@ -213,7 +216,7 @@ namespace Blind_Match_PAS.Controllers
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> EditProposal(int id)
         {
-            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var studentId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(studentId))
             {
                 return Unauthorized();

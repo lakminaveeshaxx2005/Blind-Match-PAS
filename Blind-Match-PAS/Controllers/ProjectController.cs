@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Blind_Match_PAS.Data;
 using Blind_Match_PAS.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace Blind_Match_PAS.Controllers
 {
@@ -22,11 +23,13 @@ namespace Blind_Match_PAS.Controllers
     {
         private readonly CustomDbContext _customContext;
         private readonly ApplicationDbContext _identityContext;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProjectController(CustomDbContext customContext, ApplicationDbContext identityContext)
+        public ProjectController(CustomDbContext customContext, ApplicationDbContext identityContext, UserManager<ApplicationUser> userManager)
         {
             _customContext = customContext;
             _identityContext = identityContext;
+            _userManager = userManager;
         }
 
         // GET: Project/Index
@@ -34,7 +37,7 @@ namespace Blind_Match_PAS.Controllers
         // Student identity is hidden for all pending proposals.
         public async Task<IActionResult> Index()
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -86,7 +89,7 @@ namespace Blind_Match_PAS.Controllers
         [HttpGet]
         public async Task<IActionResult> MyMatches()
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -133,7 +136,7 @@ namespace Blind_Match_PAS.Controllers
         [HttpGet]
         public async Task<IActionResult> Preferences()
         {
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");
@@ -164,7 +167,7 @@ namespace Blind_Match_PAS.Controllers
                 return View(model);
             }
 
-            var supervisorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supervisorId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 return Unauthorized("Supervisor ID not found.");

@@ -11,16 +11,51 @@ namespace Blind_Match_PAS.Controllers
     public class ProjectsController : Controller
     {
         private readonly CustomDbContext _context;
+        private readonly ApplicationDbContext _appContext;
 
-        public ProjectsController(CustomDbContext context)
+        public ProjectsController(CustomDbContext context, ApplicationDbContext appContext)
         {
             _context = context;
+            _appContext = appContext;
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
             var projects = await _context.Projects.ToListAsync();
+            return View(projects);
+        }
+
+        // GET: Projects/AvailableProjects
+        // Supervisor-only: show pending projects filtered by the supervisor's expertise/research areas
+        [HttpGet]
+        [Authorize(Roles = "Supervisor")]
+        public async Task<IActionResult> AvailableProjects()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _appContext.ApplicationUsers.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var expertise = user.Expertise?.Trim();
+
+            var query = _context.Projects.AsQueryable();
+            // There is no Status on Project; show all projects and let supervisor filter by research area
+
+            if (!string.IsNullOrEmpty(expertise))
+            {
+                var normalized = expertise.ToLower();
+                query = query.Where(p => !string.IsNullOrEmpty(p.ResearchArea) && p.ResearchArea.ToLower().Contains(normalized));
+            }
+
+            var projects = await query.ToListAsync();
             return View(projects);
         }
 
